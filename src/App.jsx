@@ -5,9 +5,11 @@ import Inicio from "./pages/Inicio";
 import Productos from "./pages/Productos";
 import CarritoPage from "./pages/CarritoPage";
 import { guardarCarrito, obtenerCarrito } from "./utils/localStorage";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
 function App() {
   // State: recuerda qué página se está mostrando
-  const [pagina, setPagina] = useState("inicio");
+  
   const [carrito,setCarrito] = useState(obtenerCarrito);
   
 
@@ -54,24 +56,35 @@ function App() {
   guardarCarrito(carrito);
 }, [carrito]);
   return (
-    <>
-      <BarraNavegacion paginaActual={pagina} cambiarPagina={setPagina} totalCarrito={totalUnidades} />
+    <BrowserRouter>
+    <BarraNavegacion totalCarrito={totalUnidades}/>
+    
+      
 
       <main className="container my-5">
-        {pagina === "inicio" && <Inicio />}
-        {pagina === "productos" && <Productos agregarAlCarrito = {agregarAlCarrito} />}
-        {pagina ==="carrito"&&(
-          <CarritoPage
-          carrito={carrito}
-          aumentarCantidad={aumentarCantidad}
-          disminuirCantidad={disminuirCantidad}
-          eliminarDelCarrito={eliminarDelCarrito}
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Inicio/>}/>
+          <Route
+          path="/productos"
+          element={<Productos agregarAlCarrito={agregarAlCarrito}/>}/>
+          <Route
+          path="/carrito"
+          element={
+            <CarritoPage
+            carrito={carrito}
+            aumentarCantidad={aumentarCantidad}
+            disminuirCantidad={disminuirCantidad}
+            eliminarDelCarrito={eliminarDelCarrito}
+            />
+          }
+          
           />
-        )}
+          </Routes>
       </main>
 
       <Footer />
-    </>
+      </BrowserRouter>
   );
 }
 
