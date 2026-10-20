@@ -1,4 +1,4 @@
-function Producto({ producto, mostrarDetalle }) {
+function Producto({ producto, mostrarDetalle, agregarAlCarrito }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
 
   return (
@@ -18,7 +18,11 @@ function Producto({ producto, mostrarDetalle }) {
                 <p className="fs-4 price-neon mb-2" style={fuenteOrbitron}>
                   ${producto.precio.toLocaleString("es-CL")}
                 </p>
-                <button className="btn btn-neon w-100 fw-bold" style={fuenteOrbitron}>
+                <button
+                  className="btn btn-neon w-100 fw-bold"
+                  style={fuenteOrbitron}
+                  onClick={() => agregarAlCarrito?.(producto)}
+                >
                   Añadir al Carrito
                 </button>
               </div>

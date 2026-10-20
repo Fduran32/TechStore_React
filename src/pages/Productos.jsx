@@ -2,7 +2,7 @@ import Banner from "../components/Banner";
 import ListaProductos from "../components/ListaProductos";
 import productos from "../data/productos";
 
-function Productos() {
+function Productos({agregarAlCarrito}) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
 
   return (
@@ -13,7 +13,7 @@ function Productos() {
       </h1>
 
       {/* Aquí no filtramos: le pasamos el array completo */}
-      <ListaProductos productos={productos} />
+      <ListaProductos productos={productos} agregarAlCarrito={agregarAlCarrito}/>
 
       <h2 className="text-center mt-5 mb-3" style={fuenteOrbitron}>
         Míralo en acción - Producto Destacado
