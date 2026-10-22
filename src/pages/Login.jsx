@@ -57,7 +57,7 @@ function Login({ onLogin }) {
           {/* Campo ContraseÃ±a */}
           <div className="mb-4">
             <label htmlFor="password" className="form-label text-secondary">
-              ContraseÃ±a
+              Contraseña
             </label>
             <input
               type="password"
