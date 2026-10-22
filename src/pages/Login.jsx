@@ -15,11 +15,20 @@ function Login({ onLogin }) {
   function handleSubmit(e) {
     e.preventDefault(); // Evita que la página se recargue
 
+<<<<<<< HEAD
     // 3. Validación de credenciales fijas del laboratorio
     if (usuario === "felipe" && password === "1234") {
       console.log("Login correcto"); // Solo para depuración
       // Avisamos a App (guarda estado + localStorage) y redirigimos al inicio
       onLogin(usuario);
+=======
+    // 3. Validación de credenciales fijas del laboratorio (felipe o mario)
+    if ((usuario === "felipe" || usuario === "mario") && password === "1234") {
+      // Guardamos la sesión en el navegador
+      sessionStorage.setItem("usuario", usuario);
+      setError("");
+      // Redirigimos al inicio
+>>>>>>> a322f1fa4bacbde2949532a832c20aa86cc64b0c
       navigate("/");
     } else {
       console.log("Usuario o contraseña incorrectos"); // Solo para depuración
