@@ -3,17 +3,16 @@ import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 import { Link, useNavigate } from "react-router-dom";
 
-function BarraNavegacion({totalCarrito}) {
+function BarraNavegacion({totalCarrito, usuario, onLogout}) {
   const navigate = useNavigate();
-const usuario = sessionStorage.getItem("usuario");
 
 function cerrarSesion() {
-  sessionStorage.removeItem("usuario"); // 1. Borramos la sesión
+  onLogout(); // 1. Borramos la sesión (estado + localStorage)
   navigate("/login"); // 2. Llevamos al usuario al login
 }
   return (
     <Navbar expand="lg" bg="dark" data-bs-theme="dark" className="border-bottom border-secondary">
-      <Container>
+      <Container fluid className="layout-wrapper">
         <Navbar.Brand
           as={Link} to="/" className="fw-bold text-neon-blue"
         >
@@ -37,17 +36,17 @@ function cerrarSesion() {
             </Nav.Link>
             <Nav.Link
             as={Link} to="/carrito"
-            >🛒 Carrito {totalCarrito> 0 && <span className="badge bg-primary ms-1">{totalCarrito}</span>}
+            >🛒 Carrito {usuario && totalCarrito> 0 && <span className="badge bg-primary ms-1">{totalCarrito}</span>}
             </Nav.Link>
             {usuario? (
               <div className="d-flex align-items-center gap-2 ms-lg-3">
-                <span className="text-neon-blue fw-bold small">
-            👤 {usuario}
+                <span className="text-neon-blue fw-bold">
+            👤 Hola, {usuario}
             </span>
             <button
             onClick={cerrarSesion}
-            className="btn btn-outline-danger btn-sm"
-            title="Cerrar sesion">
+            className="btn btn-outline-danger"
+            title="Cerrar sesión">
               🚪 Salir
               </button>
               </div>

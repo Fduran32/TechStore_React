@@ -1,10 +1,8 @@
 import { Navigate } from "react-router-dom";
 
 // children representa el componente que queremos proteger (Productos o Carrito)
-function ProtectedRoute({ children }) {
-  // 1. Verificamos si existe un usuario conectado en sessionStorage
-  const usuario = sessionStorage.getItem("usuario");
-
+function ProtectedRoute({ usuario, children }) {
+  // 1. Recibimos el usuario de sesión desde el estado de App
   // 2. Si no ha iniciado sesión, lo expulsamos al Login
   if (!usuario) {
     return <Navigate to="/login" replace />;

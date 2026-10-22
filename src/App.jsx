@@ -5,7 +5,7 @@ import Inicio from "./pages/Inicio";
 import Productos from "./pages/Productos";
 import CarritoPage from "./pages/CarritoPage";
 import { guardarCarrito, obtenerCarrito } from "./utils/localStorage";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
@@ -13,13 +13,25 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
   // State: recuerda qué página se está mostrando
   
+  // Inicializador perezoso: lee el carrito guardado ("carrito") solo al montar,
+  // así el useEffect de abajo no lo sobrescribe con un array vacío
   const [carrito,setCarrito] = useState(obtenerCarrito);
   const [mensajeAlerta, setMensajeAlerta] = useState(null);
+  // Usuario de sesión: se lee de localStorage solo al montar
+  const [usuario, setUsuario] = useState(() => localStorage.getItem("usuario") || null);
+
+  function iniciarSesion(nombre) {
+    localStorage.setItem("usuario", nombre);
+    setUsuario(nombre);
+  }
+
+  function cerrarSesion() {
+    localStorage.removeItem("usuario");
+    setUsuario(null);
+  }
 
   function agregarAlCarrito(producto) {
   // 1. Verificamos si hay usuario conectado
-  const usuario = sessionStorage.getItem("usuario");
-
   if (!usuario) {
     // Si no está logueado, le avisamos con la alerta flotante y no guardamos nada
     setMensajeAlerta("⚠️ Debes iniciar sesión para agregar productos al carrito");
@@ -65,16 +77,42 @@ function App() {
   const totalUnidades = carrito.reduce((acc,p)=>acc + p.cantidad,0);
   useEffect(() => {
   guardarCarrito(carrito);
+
+  // Solo para depuración: muestra el carrito en la consola
+  if (carrito.length === 0) {
+    console.log("El carrito está vacío");
+  } else {
+    carrito.forEach(p =>
+      console.log(`${p.emoji || "📦"} ${p.nombre} x${p.cantidad} = $${(p.precio * p.cantidad).toLocaleString("es-CL")}`)
+    );
+    const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+    console.log(`Total: $${total.toLocaleString("es-CL")}`);
+  }
 }, [carrito]);
+
+  useEffect(() => {
+    // Solo para depuración: muestra el usuario de sesión en la consola
+    console.log("Usuario de sesión:", usuario);
+  }, [usuario]);
   return (
     <BrowserRouter>
-    <BarraNavegacion totalCarrito={totalUnidades}/>
-    
-      
+    <BarraNavegacion totalCarrito={totalUnidades} usuario={usuario} onLogout={cerrarSesion}/>
 
-      <main className="container my-5">
+
+
+      <main className="layout-wrapper my-5">
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route
+          path="/login"
+          element={
+            usuario ? (
+              // Si ya hay sesión, no tiene sentido mostrar el login: volvemos al inicio
+              <Navigate to="/" replace />
+            ) : (
+              <Login onLogin={iniciarSesion} />
+            )
+          }
+          />
           <Route path="/" element={<Inicio/>}/>
           <Route
           path="/productos"
@@ -86,7 +124,7 @@ function App() {
           <Route
           path="/carrito"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute usuario={usuario}>
             <CarritoPage
             carrito={carrito}
             aumentarCantidad={aumentarCantidad}

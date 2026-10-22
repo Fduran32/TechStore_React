@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Login() {
+function Login({ onLogin }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
 
   // 1. Estados para controlar lo que el usuario escribe
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
   // Hook para poder navegar a otra ruta mediante código
   const navigate = useNavigate();
@@ -18,29 +17,21 @@ function Login() {
 
     // 3. Validación de credenciales fijas del laboratorio
     if (usuario === "felipe" && password === "1234") {
-      // Guardamos la sesión en el navegador
-      sessionStorage.setItem("usuario", usuario);
-      setError("");
-      // Redirigimos al inicio
+      console.log("Login correcto"); // Solo para depuración
+      // Avisamos a App (guarda estado + localStorage) y redirigimos al inicio
+      onLogin(usuario);
       navigate("/");
     } else {
-      setError("Usuario o contraseña incorrectos");
+      console.log("Usuario o contraseña incorrectos"); // Solo para depuración
     }
   }
 
   return (
-    <div className="container py-5 d-flex justify-content-center">
+    <div className="py-5 d-flex justify-content-center">
       <div className="card bg-dark text-white border-secondary p-4 shadow-lg" style={{ maxWidth: "420px", width: "100%" }}>
         <h2 className="text-center text-neon-blue mb-4 fw-bold" style={fuenteOrbitron}>
           Iniciar Sesión
         </h2>
-
-        {/* Mensaje de error condicional si las credenciales fallan */}
-        {error && (
-          <div className="alert alert-danger py-2 text-center" role="alert">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           {/* Campo Usuario */}

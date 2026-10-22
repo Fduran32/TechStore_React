@@ -4,7 +4,7 @@ function Footer() {
 
   return (
     <footer className="bg-dark text-white py-4 mt-5 border-top border-secondary">  {/* 👈 className */}
-      <div className="container">
+      <div className="layout-wrapper">
         <p className="mb-3 text-secondary" style={fuenteOrbitron}>  {/* 👈 style como objeto */}
           Visita nuestras redes sociales:
         </p>

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function CarritoPage({ carrito, aumentarCantidad, disminuirCantidad, eliminarDelCarrito }){
     const fuenteOrbitron ={fontFamily: "'Orbitron' , sans-serif"};
 
@@ -6,16 +8,19 @@ const total = carrito.reduce(
 );
 if (carrito.length === 0){
     return(
-        <div className="text-center py-5">
-            <h2 style = {fuenteOrbitron} className="text-neon-blue mb-3">🛒 Mi Carrito</h2>
-            <div className="alert alert-secondary d-inline-block px-4 py-3">
-                <p className="mb-0 fs-5">El carrito esta vacio</p>
+        <div className="py-5 d-flex justify-content-center">
+            <div className="card bg-dark text-white border-secondary p-4 shadow-lg text-center" style={{ maxWidth: "420px", width: "100%" }}>
+                <h2 style={fuenteOrbitron} className="text-neon-blue mb-4 fw-bold">🛒 Mi Carrito</h2>
+                <p className="text-secondary fs-5 mb-4">El carrito está vacío</p>
+                <Link to="/productos" className="btn btn-neon w-100 fw-bold py-2" style={fuenteOrbitron}>
+                    Ver productos
+                </Link>
             </div>
-            </div>       
+        </div>
     );
 }
 return(
-    <div className="container py-4">
+    <div className="py-4">
         <h2 style={fuenteOrbitron} className="text-neon-blue mb-4">🛒 Mi Carrito de Compras</h2>
     <div className="table-responsive">
         <table className="table table-dark table-hover align-middle border-secondary">
@@ -40,7 +45,7 @@ return(
                                             style = {{width:"50px", height:"50px",objectFit:"cover",borderRadius:"8px"}}
                                             />
                         )}
-                        <span className="fw-bold">{producto.nombre}</span>
+                        <span className="fw-bold">{producto.emoji || "📦"} {producto.nombre}</span>
                         </div>
                         </td>
                         <td>${producto.precio.toLocaleString("es-cl")}</td>

@@ -1,4 +1,4 @@
-const CLAVE_CARRITO = "techstore-carrito";
+const CLAVE_CARRITO = "carrito";
 
 export function obtenerCarrito() {
   try {

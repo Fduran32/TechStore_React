@@ -35,14 +35,42 @@ body {
     transform: translateY(-2px);
 }
 
+/* --- CONTENEDOR PRINCIPAL --- */
+/* Reemplaza a .container: más ancho en pantallas grandes y con el mismo
+   padding lateral en navbar, contenido y footer para que todo quede alineado */
+.layout-wrapper {
+    width: 100%;
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+@media (min-width: 768px) {
+    .layout-wrapper {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+}
+
+@media (min-width: 992px) {
+    .layout-wrapper {
+        padding-left: 48px;
+        padding-right: 48px;
+    }
+}
+
 /* --- IMÁGENES --- */
 .banner-img {
-    max-height: 420px;
+    width: 100%;
+    height: clamp(350px, 28vw, 500px);
     object-fit: cover;
 }
 
 .product-img {
-    height: 200px;
+    width: 100%;
+    aspect-ratio: 16 / 10;
     object-fit: cover;
 }
 
@@ -58,6 +86,10 @@ body {
 
 /* --- ADAPTACIÓN RESPONSIVA (MÓVILES) --- */
 @media (max-width: 767.98px) {
+    .banner-img {
+        height: 220px;
+    }
+
     .btn-banner {
         padding: 8px 12px;
         font-size: 0.8rem;
