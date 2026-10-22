@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Login({ onLogin }) {
@@ -8,30 +8,24 @@ function Login({ onLogin }) {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
 
-  // Hook para poder navegar a otra ruta mediante código
+  // Hook para poder navegar a otra ruta mediante cÃ³digo
   const navigate = useNavigate();
 
-  // 2. Función que se ejecuta al presionar "Ingresar"
+  // 2. FunciÃ³n que se ejecuta al presionar "Ingresar"
   function handleSubmit(e) {
-    e.preventDefault(); // Evita que la página se recargue
+    e.preventDefault(); // Evita que la pÃ¡gina se recargue
 
-<<<<<<< HEAD
-    // 3. Validación de credenciales fijas del laboratorio
-    if (usuario === "felipe" && password === "1234") {
-      console.log("Login correcto"); // Solo para depuración
-      // Avisamos a App (guarda estado + localStorage) y redirigimos al inicio
-      onLogin(usuario);
-=======
-    // 3. Validación de credenciales fijas del laboratorio (felipe o mario)
+    // ValidaciÃ³n de credenciales fijas del laboratorio (felipe o mario)
     if ((usuario === "felipe" || usuario === "mario") && password === "1234") {
-      // Guardamos la sesión en el navegador
-      sessionStorage.setItem("usuario", usuario);
-      setError("");
-      // Redirigimos al inicio
->>>>>>> a322f1fa4bacbde2949532a832c20aa86cc64b0c
+      // App administra el estado persistente; el respaldo permite usar Login aislado.
+      if (onLogin) {
+        onLogin(usuario);
+      } else {
+        sessionStorage.setItem("usuario", usuario);
+      }
       navigate("/");
     } else {
-      console.log("Usuario o contraseña incorrectos"); // Solo para depuración
+      console.log("Usuario o contraseÃ±a incorrectos"); // Solo para depuraciÃ³n
     }
   }
 
@@ -39,7 +33,7 @@ function Login({ onLogin }) {
     <div className="py-5 d-flex justify-content-center">
       <div className="card bg-dark text-white border-secondary p-4 shadow-lg" style={{ maxWidth: "420px", width: "100%" }}>
         <h2 className="text-center text-neon-blue mb-4 fw-bold" style={fuenteOrbitron}>
-          Iniciar Sesión
+          Iniciar Sesion
         </h2>
 
         <form onSubmit={handleSubmit}>
@@ -60,24 +54,24 @@ function Login({ onLogin }) {
             />
           </div>
 
-          {/* Campo Contraseña */}
+          {/* Campo ContraseÃ±a */}
           <div className="mb-4">
             <label htmlFor="password" className="form-label text-secondary">
-              Contraseña
+              ContraseÃ±a
             </label>
             <input
               type="password"
               id="password"
               name="password"
               className="form-control bg-dark text-white border-secondary"
-              placeholder="Ingresa tu contraseña (ej: 1234)"
+              placeholder="Ingresa tu contraseÃ±a (ej: 1234)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
 
-          {/* Botón Ingresar */}
+          {/* BotÃ³n Ingresar */}
           <button
             type="submit"
             className="btn btn-neon w-100 fw-bold py-2"
