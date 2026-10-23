@@ -2,12 +2,13 @@ import Banner from "../components/Banner";
 import ListaProductos from "../components/ListaProductos";
 import productos from "../data/productos";
 
-function Productos({agregarAlCarrito}) {
+function Productos({ agregarAlCarrito }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
+  const base = import.meta.env.BASE_URL;
 
   return (
     <>
-        <Banner /> 
+      <Banner /> 
       <h1 className="text-center mb-4 text-neon-blue fw-bold" style={fuenteOrbitron}>
         Catálogo de Productos
       </h1>
@@ -26,10 +27,10 @@ function Productos({agregarAlCarrito}) {
             loop
             autoPlay
             muted
-            poster="/img/teclado.jpg"
+            poster={`${base}img/teclado.jpg`}
             className="img-fluid rounded shadow-sm"
           >
-            <source src="/video/teclado-rgb.mp4" type="video/mp4" />
+            <source src={`${base}video/teclado-rgb.mp4`} type="video/mp4" />
             Teclado RGB
           </video>
         </div>

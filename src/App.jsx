@@ -116,7 +116,7 @@ function App() {
     console.log("👤 [STATE USUARIO ACTUAL]:", usuario || "(Ninguna sesión activa)");
   }, [usuario]);
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
     <BarraNavegacion totalCarrito={totalUnidades} usuario={usuario} onLogout={cerrarSesion}/>
 
 

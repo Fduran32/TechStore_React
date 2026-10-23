@@ -1,10 +1,12 @@
+const base = import.meta.env.BASE_URL;
+
 const productos = [
   {
     id: 1,
     nombre: "Audífonos Bluetooth Pro",
     descripcion: "Cancelación de ruido activa y sonido envolvente 7.1.",
     precio: 59990,
-    imagen: "/img/audifonos.jpg",
+    imagen: `${base}img/audifonos.jpg`,
     emoji: "🎧",
     destacado: true,
   },
@@ -13,7 +15,7 @@ const productos = [
     nombre: "Teclado Mecánico RGB",
     descripcion: "Switches mecánicos Red, retroiluminación personalizable.",
     precio: 45990,
-    imagen: "/img/teclado.jpg",
+    imagen: `${base}img/teclado.jpg`,
     emoji: "⌨️",
     destacado: true,
   },
@@ -22,7 +24,7 @@ const productos = [
     nombre: "Mouse Gamer",
     descripcion: "Diseño ergonómico, sensor óptico de alta precisión.",
     precio: 29990,
-    imagen: "/img/mouse.jpg",
+    imagen: `${base}img/mouse.jpg`,
     emoji: "🖱️",
     destacado: true,
   },
@@ -31,7 +33,7 @@ const productos = [
     nombre: "Monitor 27\" LED",
     descripcion: "Resolución Full HD, tiempo de respuesta de 1ms.",
     precio: 89990,
-    imagen: "/img/monitor.webp",
+    imagen: `${base}img/monitor.webp`,
     emoji: "🖥️",
     destacado: false,
   },
@@ -40,7 +42,7 @@ const productos = [
     nombre: "Mousepad Gaming",
     descripcion: "Superficie antideslizante, diseño personalizable.",
     precio: 15990,
-    imagen: "/img/mousepad.webp",
+    imagen: `${base}img/mousepad.webp`,
     emoji: "🟪",
     destacado: false,
   },
@@ -49,7 +51,7 @@ const productos = [
     nombre: "Silla Gamer",
     descripcion: "Asiento acolchado, respaldo ajustable.",
     precio: 189990,
-    imagen: "/img/sillagamer.webp",
+    imagen: `${base}img/sillagamer.webp`,
     emoji: "💺",
     destacado: false,
   }
