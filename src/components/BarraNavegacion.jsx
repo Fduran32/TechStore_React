@@ -45,21 +45,12 @@ function BarraNavegacion({ totalCarrito, usuario, onLogout }) {
           >
             {!despidiendo ? (
               <>
-                <div className="mb-3" style={{ fontSize: "3rem" }}>
-                  🚪❓
-                </div>
-
                 <h3
-                  className="fw-bold mb-2 text-warning"
+                  className="fw-bold mb-4 text-neon-blue"
                   style={fuenteOrbitron}
                 >
-                  ¿Cerrar Sesión?
+                  ¿Desea cerrar sesión?
                 </h3>
-
-                <p className="text-secondary mb-4">
-                  ¿Estás seguro de que deseas salir de tu cuenta,{" "}
-                  <strong className="text-white">{usuario}</strong>?
-                </p>
 
                 <div className="d-flex justify-content-center gap-3">
                   <button
@@ -74,28 +65,18 @@ function BarraNavegacion({ totalCarrito, usuario, onLogout }) {
                     className="btn btn-danger px-4 py-2 fw-bold"
                     onClick={confirmarSalida}
                   >
-                    Sí, cerrar sesión
+                    Cerrar sesión
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <div className="mb-3" style={{ fontSize: "3.5rem" }}>
-                  👋✨
-                </div>
-
                 <h3
-                  className="fw-bold mb-2 text-neon-blue"
+                  className="fw-bold mb-3 text-neon-blue"
                   style={fuenteOrbitron}
                 >
-                  ¡Hasta la próxima!
+                  Hasta la próxima
                 </h3>
-
-                <p className="text-secondary mb-3">
-                  Esperamos verte pronto,{" "}
-                  <strong className="text-white">{usuario}</strong>. Cerrando
-                  sesión de forma segura...
-                </p>
 
                 <div
                   className="spinner-border text-info spinner-border-sm mx-auto"
