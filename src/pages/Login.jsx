@@ -43,8 +43,8 @@ function Login({ onLogin }) {
 
     const usuarioNormalizado = usuario.trim().toLowerCase();
 
-    // Validación 3: Credenciales del laboratorio (felipe o mario con 1234)
-    if ((usuarioNormalizado === "felipe" || usuarioNormalizado === "mario") && password === "1234") {
+    // Validación 3: Credenciales del laboratorio (felipe o claudio con 1234)
+    if ((usuarioNormalizado === "felipe" || usuarioNormalizado === "claudio") && password === "1234") {
       console.log(`✅ [LOGIN] Login correcto. Sesión autorizada para: "${usuario}"`);
 
       // 1. Guardamos en el storage de inmediato para que los tests y la sesión lo tengan
@@ -153,7 +153,7 @@ function Login({ onLogin }) {
               id="usuario"
               name="usuario"
               className="form-control bg-dark text-white border-secondary"
-              placeholder="Ingresa tu usuario (ej: felipe o mario)"
+              placeholder="Ingresa tu usuario (ej: felipe o claudio)"
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
               required
