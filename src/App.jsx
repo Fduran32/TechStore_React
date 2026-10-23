@@ -15,89 +15,105 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
   // State: recuerda qué página se está mostrando
   
-  // Inicializador perezoso: lee el carrito guardado ("carrito") solo al montar,
-  // así el useEffect de abajo no lo sobrescribe con un array vacío
-  const [carrito,setCarrito] = useState(obtenerCarrito);
+  // Inicializador perezoso: lee el carrito guardado ("carrito") solo al montar
+  const [carrito, setCarrito] = useState(() => {
+    const guardado = obtenerCarrito();
+    console.log("🛒 [STATE INICIAL] Carrito recuperado desde localStorage:", guardado);
+    return guardado;
+  });
   const [mensajeAlerta, setMensajeAlerta] = useState(null);
   // Usuario de sesión: se lee de localStorage solo al montar
-  const [usuario, setUsuario] = useState(() => localStorage.getItem("usuario") || null);
+  const [usuario, setUsuario] = useState(() => {
+    const sesion = localStorage.getItem("usuario") || null;
+    console.log("👤 [STATE INICIAL] Sesión recuperada desde localStorage:", sesion);
+    return sesion;
+  });
 
   function iniciarSesion(nombre) {
+    console.log("✅ [STATE USUARIO] Sesión iniciada para:", nombre);
     localStorage.setItem("usuario", nombre);
     setUsuario(nombre);
   }
 
   function cerrarSesion() {
+    console.log("🚪 [STATE USUARIO] Sesión cerrada. Usuario eliminado:", usuario);
     localStorage.removeItem("usuario");
     setUsuario(null);
   }
 
   function agregarAlCarrito(producto) {
-  // 1. Verificamos si hay usuario conectado
-  if (!usuario) {
-    // Si no está logueado, le avisamos con la alerta flotante y no guardamos nada
-    setMensajeAlerta("⚠️ Debes iniciar sesión para agregar productos al carrito");
-    return; // Detiene la función aquí
+    // 1. Verificamos si hay usuario conectado
+    if (!usuario) {
+      console.log("⚠️ [STATE CARRITO] Intento de agregar producto sin sesión iniciada");
+      setMensajeAlerta("⚠️ Debes iniciar sesión para agregar productos al carrito");
+      return; // Detiene la función aquí
+    }
+
+    // 2. Si sí está logueado, se agrega normalmente:
+    const productoExiste = carrito.find(item => item.id === producto.id);
+    if (productoExiste) {
+      console.log(`➕ [STATE CARRITO] Aumentando cantidad de "${producto.nombre}": ${productoExiste.cantidad} ➔ ${productoExiste.cantidad + 1}`);
+      setCarrito(
+        carrito.map(item =>
+          item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
+        )
+      );
+    } else {
+      console.log(`🆕 [STATE CARRITO] Nuevo producto añadido: "${producto.nombre}" (cantidad: 1)`);
+      setCarrito([...carrito, { ...producto, cantidad: 1 }]);
+    }
+
+    setMensajeAlerta(`¡${producto.nombre} agregado al carrito!`);
   }
 
-  // 2. Si sí está logueado, se agrega normalmente:
-  const productoExiste = carrito.find(item => item.id === producto.id);
-  if (productoExiste) {
+  function aumentarCantidad(id) {
+    const item = carrito.find(p => p.id === id);
+    console.log(`⬆️ [STATE CARRITO] Aumentando unidad de "${item?.nombre || id}" (ID: ${id})`);
     setCarrito(
-      carrito.map(item =>
-        item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
+      carrito.map(producto =>
+        producto.id === id
+          ? { ...producto, cantidad: producto.cantidad + 1 }
+          : producto
       )
     );
-  } else {
-    setCarrito([...carrito, { ...producto, cantidad: 1 }]);
   }
 
-  setMensajeAlerta(`¡${producto.nombre} agregado al carrito!`);
-}
-  function aumentarCantidad (id){
+  function disminuirCantidad(id) {
+    const item = carrito.find(p => p.id === id);
+    console.log(`⬇️ [STATE CARRITO] Disminuyendo unidad de "${item?.nombre || id}" (ID: ${id})`);
     setCarrito(
-      carrito.map(producto=>
-        producto.id ===id?
-        {...producto, cantidad: producto.cantidad + 1}
-        : producto
-      )
+      carrito
+        .map(producto =>
+          producto.id === id
+            ? { ...producto, cantidad: producto.cantidad - 1 }
+            : producto
+        )
+        .filter(p => p.cantidad > 0)
     );
   }
-  function disminuirCantidad(id){
-    setCarrito(
-      carrito.map(
-        producto => producto.id === id?
-        {...producto,cantidad:producto.cantidad -1}
-        :producto
-      )
-      .filter(p=> p.cantidad > 0)
-    );
+
+  function eliminarDelCarrito(id) {
+    const item = carrito.find(p => p.id === id);
+    console.log(`🗑️ [STATE CARRITO] Eliminando producto "${item?.nombre || id}" (ID: ${id})`);
+    setCarrito(carrito.filter(producto => producto.id !== id));
   }
-  function eliminarDelCarrito(id){
-    setCarrito(carrito.filter(producto=> producto.id !== id));
-  }
-  function vaciarCarrito(){
+
+  function vaciarCarrito() {
+    console.log("🧹 [STATE CARRITO] Vaciando carrito por completo (compra realizada)");
     setCarrito([]);
   }
-  const totalUnidades = carrito.reduce((acc,p)=>acc + p.cantidad,0);
-  useEffect(() => {
-  guardarCarrito(carrito);
 
-  // Solo para depuración: muestra el carrito en la consola
-  if (carrito.length === 0) {
-    console.log("El carrito está vacío");
-  } else {
-    carrito.forEach(p =>
-      console.log(`${p.emoji || "📦"} ${p.nombre} x${p.cantidad} = $${(p.precio * p.cantidad).toLocaleString("es-CL")}`)
-    );
-    const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
-    console.log(`Total: $${total.toLocaleString("es-CL")}`);
-  }
-}, [carrito]);
+  const totalUnidades = carrito.reduce((acc, p) => acc + p.cantidad, 0);
 
   useEffect(() => {
-    // Solo para depuración: muestra el usuario de sesión en la consola
-    console.log("Usuario de sesión:", usuario);
+    guardarCarrito(carrito);
+    console.log("💾 [STATE CARRITO ACTUALIZADO]:", carrito);
+    const totalPagar = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+    console.log(`📊 [RESUMEN CARRITO]: ${totalUnidades} unidades | Total a pagar: $${totalPagar.toLocaleString("es-CL")}`);
+  }, [carrito, totalUnidades]);
+
+  useEffect(() => {
+    console.log("👤 [STATE USUARIO ACTUAL]:", usuario || "(Ninguna sesión activa)");
   }, [usuario]);
   return (
     <BrowserRouter>

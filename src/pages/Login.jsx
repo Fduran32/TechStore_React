@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Login({ onLogin }) {
@@ -15,8 +15,11 @@ function Login({ onLogin }) {
   function handleSubmit(e) {
     e.preventDefault(); // Evita que la pÃ¡gina se recargue
 
-    // ValidaciÃ³n de credenciales fijas del laboratorio (felipe o mario)
+    console.log(`🔑 [LOGIN] Validando State credenciales -> Usuario: "${usuario}"`);
+
+    // Validación de credenciales fijas del laboratorio (felipe o mario)
     if ((usuario === "felipe" || usuario === "mario") && password === "1234") {
+      console.log(`✅ [LOGIN] Login correcto. Sesión autorizada para: "${usuario}"`);
       // App administra el estado persistente; el respaldo permite usar Login aislado.
       if (onLogin) {
         onLogin(usuario);
@@ -25,7 +28,7 @@ function Login({ onLogin }) {
       }
       navigate("/");
     } else {
-      console.log("Usuario o contraseÃ±a incorrectos"); // Solo para depuraciÃ³n
+      console.log("❌ [LOGIN] Usuario o contraseña incorrectos");
     }
   }
 
