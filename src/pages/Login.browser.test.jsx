@@ -53,7 +53,7 @@ describe("Pruebas de navegador del inicio de sesión (Chromium)", () => {
 
     expect(sessionStorage.getItem("usuario")).toBe("mario");
     expect(
-      screen.getByRole("heading", { name: /página principal/i })
+      await screen.findByRole("heading", { name: /página principal/i }, { timeout: 3000 })
     ).toBeInTheDocument();
   });
 
