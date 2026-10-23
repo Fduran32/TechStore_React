@@ -100,74 +100,81 @@ function CarritoPage({ carrito, aumentarCantidad, disminuirCantidad, eliminarDel
         🛒 Mi Carrito de Compras
       </h2>
 
-      <div className="table-responsive">
-        <table className="table table-dark table-hover align-middle border-secondary">
-          <thead>
-            <tr className="text-secondary small">
-              <th>Producto</th>
-              <th>Precio Unitario</th>
-              <th className="text-center">Cantidad</th>
-              <th>SubTotal</th>
-              <th className="text-center">Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {carrito.map((producto) => (
-              <tr key={producto.id}>
-                <td>
-                  <div className="d-flex align-items-center gap-3">
-                    {producto.imagen && (
-                      <img
-                        src={producto.imagen}
-                        alt={producto.nombre}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          objectFit: "cover",
-                          borderRadius: "8px",
-                        }}
-                      />
-                    )}
-                    <span className="fw-bold">
+      {/* Listado responsivo de productos del carrito (optimizado para móvil y PC) */}
+      <div className="d-flex flex-column gap-3">
+        {carrito.map((producto) => (
+          <div
+            key={producto.id}
+            className="card bg-dark text-white border-secondary p-3 shadow-sm"
+          >
+            <div className="row align-items-center g-3">
+              {/* Foto, nombre y precio unitario */}
+              <div className="col-12 col-md-5">
+                <div className="d-flex align-items-center gap-3">
+                  {producto.imagen && (
+                    <img
+                      src={producto.imagen}
+                      alt={producto.nombre}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
+                    />
+                  )}
+                  <div>
+                    <h5 className="mb-1 fw-bold">
                       {producto.emoji || "📦"} {producto.nombre}
-                    </span>
+                    </h5>
+                    <p className="mb-0 text-secondary small">
+                      Precio unitario: ${producto.precio.toLocaleString("es-CL")}
+                    </p>
                   </div>
-                </td>
-                <td>${producto.precio.toLocaleString("es-CL")}</td>
-                <td className="text-center">
-                  <div className="btn-group" role="group">
-                    <button
-                      className="btn btn-outline-danger btn-sm px-2 fw-bold"
-                      onClick={() => disminuirCantidad(producto.id)}
-                    >
-                      -
-                    </button>
-                    <span className="btn btn-dark btn-sm px-3 fw-bold disabled border-secondary">
-                      {producto.cantidad}
-                    </span>
-                    <button
-                      className="btn btn-outline-success btn-sm px-2 fw-bold"
-                      onClick={() => aumentarCantidad(producto.id)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </td>
-                <td className="fw-bold text-neon-blue">
-                  ${(producto.precio * producto.cantidad).toLocaleString("es-CL")}
-                </td>
-                <td className="text-center">
+                </div>
+              </div>
+
+              {/* Botones de cantidad (- 2 +) */}
+              <div className="col-6 col-md-3 text-start text-md-center">
+                <div className="btn-group" role="group">
                   <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => eliminarDelCarrito(producto.id)}
+                    className="btn btn-outline-danger btn-sm px-2 px-md-3 fw-bold"
+                    onClick={() => disminuirCantidad(producto.id)}
                   >
-                    🗑️ Eliminar
+                    -
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <span className="btn btn-dark btn-sm px-3 fw-bold disabled border-secondary text-white">
+                    {producto.cantidad}
+                  </span>
+                  <button
+                    className="btn btn-outline-success btn-sm px-2 px-md-3 fw-bold"
+                    onClick={() => aumentarCantidad(producto.id)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Subtotal y Botón Eliminar */}
+              <div className="col-6 col-md-4 d-flex justify-content-end align-items-center gap-2 gap-md-3">
+                <div className="text-end">
+                  <small className="text-secondary d-none d-md-block">Subtotal</small>
+                  <span className="fw-bold text-neon-blue fs-5">
+                    ${(producto.precio * producto.cantidad).toLocaleString("es-CL")}
+                  </span>
+                </div>
+
+                <button
+                  className="btn btn-danger btn-sm px-2 px-md-3"
+                  onClick={() => eliminarDelCarrito(producto.id)}
+                  title="Eliminar producto"
+                >
+                  🗑️ Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 p-3 bg-dark border border-secondary rounded">
