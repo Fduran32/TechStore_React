@@ -1,4 +1,6 @@
 function Producto({ producto, mostrarDetalle, agregarAlCarrito }) {
+
+  console.log("Producto Recibido:", producto);
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
 
   return (
