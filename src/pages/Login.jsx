@@ -47,21 +47,22 @@ function Login({ onLogin }) {
     if ((usuarioNormalizado === "felipe" || usuarioNormalizado === "mario") && password === "1234") {
       console.log(`✅ [LOGIN] Login correcto. Sesión autorizada para: "${usuario}"`);
 
-      // Guardamos la sesión en el navegador
-      if (onLogin) {
-        onLogin(usuario.trim());
-      } else {
-        sessionStorage.setItem("usuario", usuario.trim());
-      }
+      // 1. Guardamos en el storage de inmediato para que los tests y la sesión lo tengan
+      sessionStorage.setItem("usuario", usuario.trim());
+      localStorage.setItem("usuario", usuario.trim());
 
+      // 2. Mostramos la alerta de éxito en la mitad de la pantalla
       setAlerta({
         tipo: "exito",
         titulo: "¡Inicio de sesión correcto!",
         mensaje: `Bienvenido/a a TechStore, ${usuario}. Ingresando al sistema...`,
       });
 
-      // Redirige al inicio tras 1.5 segundos para apreciar la alerta de éxito
+      // 3. Esperamos 1.5 segundos para que el usuario aprecie la alerta antes de desmontar el Login
       setTimeout(() => {
+        if (onLogin) {
+          onLogin(usuario.trim());
+        }
         navigate("/");
       }, 1500);
     } else {
