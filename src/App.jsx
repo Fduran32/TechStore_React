@@ -7,6 +7,8 @@ import CarritoPage from "./pages/CarritoPage";
 import { guardarCarrito, obtenerCarrito } from "./utils/localStorage";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
+import CompraExitosa from "./pages/CompraExitosa";
+import MisCompras from "./pages/MisCompras";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -74,6 +76,9 @@ function App() {
   function eliminarDelCarrito(id){
     setCarrito(carrito.filter(producto=> producto.id !== id));
   }
+  function vaciarCarrito(){
+    setCarrito([]);
+  }
   const totalUnidades = carrito.reduce((acc,p)=>acc + p.cantidad,0);
   useEffect(() => {
   guardarCarrito(carrito);
@@ -130,10 +135,27 @@ function App() {
             aumentarCantidad={aumentarCantidad}
             disminuirCantidad={disminuirCantidad}
             eliminarDelCarrito={eliminarDelCarrito}
+            vaciarCarrito={vaciarCarrito}
             />
             </ProtectedRoute>
           }
           
+          />
+          <Route
+            path="/compra-exitosa"
+            element={
+              <ProtectedRoute usuario={usuario}>
+                <CompraExitosa />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mis-compras"
+            element={
+              <ProtectedRoute usuario={usuario}>
+                <MisCompras />
+              </ProtectedRoute>
+            }
           />
           </Routes>
       </main>

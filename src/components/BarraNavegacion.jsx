@@ -40,15 +40,21 @@ function cerrarSesion() {
             </Nav.Link>
             {usuario? (
               <div className="d-flex align-items-center gap-2 ms-lg-3">
-                <span className="text-neon-blue fw-bold">
-            👤 Hola, {usuario}
-            </span>
-            <button
-            onClick={cerrarSesion}
-            className="btn btn-outline-danger"
-            title="Cerrar sesión">
-              🚪 Salir
-              </button>
+                <Link
+                  to="/mis-compras"
+                  className="btn btn-outline-info fw-bold btn-sm d-flex align-items-center gap-1 text-decoration-none"
+                  title="Ver mis compras realizadas"
+                >
+                  👤 {usuario}
+                  <span className="badge bg-info text-dark ms-1">Mis Compras</span>
+                </Link>
+                <button
+                  onClick={cerrarSesion}
+                  className="btn btn-outline-danger btn-sm"
+                  title="Cerrar sesión"
+                >
+                  🚪 Salir
+                </button>
               </div>
             ):(
             
