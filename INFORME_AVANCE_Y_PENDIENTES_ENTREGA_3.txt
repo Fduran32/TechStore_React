@@ -1,0 +1,123 @@
+================================================================================
+INFORME DE AVANCE Y PLAN DE CIERRE · ENTREGA 3
+Asignatura: Desarrollo Fullstack II (DSY1104) · Evaluación Parcial 3 (40%)
+Integrantes: Felipe Durán y Claudio Bertero
+Fecha de Actualización: 22 de Noviembre de 2026
+================================================================================
+
+1. RESUMEN EJECUTIVO DEL ESTADO DEL PROYECTO
+--------------------------------------------------------------------------------
+Conforme a las indicaciones del docente, el proyecto se adaptó exitosamente a
+un entorno 100% local, unificando la arquitectura en una solución robusta y de
+estándar corporativo:
+
+1. Backend Unificado (Spring Boot 4 / Java 17):
+   Corre en puerto 8081 con Spring Security, autenticación por tokens JWT
+   (JJWT 0.12.6), CORS global multipuerto y controladores CRUD para catálogo
+   y stock.
+
+2. Base de Datos Relacional (MySQL en Laragon):
+   Opera en puerto 3306 bajo la base tienda_perifericos con tablas usuario y
+   producto, datos reales y contraseñas encriptadas con BCrypt en UTF-8.
+
+3. Frontend React 19 (Vite + Axios):
+   Cliente web con interceptores Bearer automáticos, captura de 401,
+   restauración de sesión en F5, catálogo en vivo y rebaja automática de
+   existencias en bodega.
+
+
+2. MATRIZ GENERAL DE AVANCE: LO QUE ESTÁ LISTO VS PENDIENTE
+--------------------------------------------------------------------------------
+[TAREAS COMPLETADAS AL 100% (65% DEL PROYECTO)]
+• Base de Datos MySQL (Laragon):
+  BD tienda_perifericos creada en p:3306. Tablas usuario y producto con datos
+  reales y soporte UTF-8.
+• CRUD Productos Backend:
+  Entidad Producto, ProductoRepository, Servicio y ProductoController
+  (GET, POST, PUT, PATCH, DELETE).
+• Auth Service con Spring Security y JWT (Felipe):
+  Firma HMAC-SHA256, expiración 24h, claims de rol (ADMIN, VENDEDOR, CLIENTE),
+  endpoints /api/v1/auth/login y /validate.
+• Configuración CORS Multipuerto:
+  Soporte dinámico para orígenes locales (5173, 5174, etc.) evitando bloqueos.
+• Axios e Interceptores Frontend (Felipe):
+  Cliente centralizado inyectando Authorization: Bearer, captura 401 y logs
+  limpios de monitoreo.
+• Persistencia de Sesión y F5 (Felipe):
+  Almacenamiento seguro de token y rol en localStorage con validación
+  automática en servidor al recargar.
+• Login con Alias Amigables (Felipe):
+  Acceso directo con admin, vendedor, cliente o RUT; corregida etiqueta a
+  Contraseña con ñ.
+• Catálogo Conectado a MySQL (Felipe / Claudio):
+  Productos.jsx consume GET /api/productos, asignando imágenes dinámicas
+  por categoría.
+• Descuento de Stock en Compra (Felipe):
+  CarritoPage.jsx descuenta unidades en vivo en MySQL con PATCH /stock
+  (comprobado: Razer 15 -> 13).
+• Respaldo en GitHub (Ambos):
+  Repositorios Fduran32/TechStore_React y Cbertero/ms_techstore actualizados
+  en origin/main.
+
+[TAREAS PENDIENTES PARA EL CIERRE (35% RESTANTE)]
+1. Panel de Inventario / Gestión:
+   Vista protegida (/admin o /inventario) para crear productos, modificar
+   precios y ajustar stock manualmente.
+2. Restricción de Rutas por Rol (RBAC):
+   Actualizar ProtectedRoute.jsx para bloquear accesos según rol (ej: Cliente
+   no puede entrar a Inventario).
+3. Badge de Rol en Barra de Navegación:
+   Mostrar la insignia visual del rol activo (ADMINISTRADOR, VENDEDOR,
+   CLIENTE) en el Navbar.
+4. Imágenes Individuales de Productos:
+   Asignar imágenes únicas en public/img a cada uno de los 15 periféricos para
+   evitar fotos repetidas.
+5. Portada Inicio.jsx con BD:
+   Mostrar productos destacados traídos directamente desde MySQL en vez del
+   mock local.
+
+
+3. PLAN DE TRABAJO PARA LA PRÓXIMA SESIÓN (MARTES)
+--------------------------------------------------------------------------------
+• Paso 1: Apartado de Inventario / Dashboard Administrativo
+  Diseñar la vista /inventario con tabla corporativa que muestre ID, Nombre,
+  Categoría, Precio y Stock de cada periférico, con formulario para crear
+  nuevos productos (POST) y botones para editar precio/categoría (PUT) o
+  eliminar (DELETE).
+• Paso 2: Control de Accesos por Rol en Frontend
+  Extender ProtectedRoute para validar el rol del usuario logueado. Si un
+  CLIENTE intenta ingresar a /inventario, será redirigido al catálogo con un
+  mensaje de alerta de permisos.
+• Paso 3: Identificador Visual en Navbar
+  Agregar en BarraNavegacion.jsx un badge al lado del usuario (ej: admin
+  [ADMINISTRADOR] o juan [CLIENTE]) para evidencia visual inmediata en la
+  defensa.
+• Paso 4: Actualización Estética de Imágenes
+  Reemplazar las imágenes compartidas en public/img por fotos únicas para cada
+  uno de los 15 periféricos.
+• Paso 5: Sincronización de la Portada
+  Hacer que Inicio.jsx muestre los 3 productos destacados consumiendo la base
+  de datos MySQL en vez del mock local.
+
+
+4. CUMPLIMIENTO FRENTE A LA RÚBRICA OFICIAL DUOC UC
+--------------------------------------------------------------------------------
+• IE3.1.1 (8%) - Conexión Backend a BD:
+  CUMPLIDO AL 100%. MySQL en Laragon funcionando con tablas requeridas,
+  relaciones, integridad referencial y UTF-8.
+• IE3.2.1 (8%) - Endpoints API REST CRUD:
+  CUMPLIDO AL 100%. Endpoints /api/productos (GET, POST, PUT, PATCH, DELETE)
+  desarrollados y operativos.
+• IE3.2.2 (6%) - Integración Backend <-> Frontend con REST:
+  CUMPLIDO AL 90%. Catálogo y descuento de stock en compras integrados con
+  Axios en vivo; resta conectar el formulario de creación/edición.
+• IE3.3.1 (6%) - Autenticación Backend con Roles y JWT:
+  CUMPLIDO AL 100%. Tokens firmados con algoritmo HMAC-SHA256, expiración
+  configurada y claims de rol.
+• IE3.3.2 (6%) - Gestión de Sesión y Persistencia en Frontend:
+  CUMPLIDO AL 100%. Sesión almacenada en localStorage, validada y restaurada
+  ante recargas (F5).
+• IE3.3.3 (6%) - Restricciones de acceso por Rol en Frontend:
+  CUMPLIDO AL 50%. Roles decodificados y disponibles; se completará el martes
+  con las vistas protegidas del inventario.
+================================================================================
