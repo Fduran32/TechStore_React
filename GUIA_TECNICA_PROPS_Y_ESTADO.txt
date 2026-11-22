@@ -1,0 +1,178 @@
+================================================================================
+GUIA TECNICA: PROPS Y STATE EN REACT
+Fundamentos de Arquitectura, Flujo de Datos y Defensa Tecnica - TechStore React
+Basado en las Guias 1 y 2 de Duoc UC
+================================================================================
+
+1. RESUMEN EJECUTIVO Y RESPUESTA DIRECTA
+--------------------------------------------------------------------------------
+¿El proyecto TechStore_React esta funcionando con Props?
+
+RESPUESTA: SI, AL 100%.
+La arquitectura de toda la aplicacion esta fundamentada en el patron estandar
+de React conocido como "Lifting State Up" (Elevacion de Estado) y flujo de datos
+unidireccional (One-Way Data Binding) a traves de PROPS.
+
+Tanto la informacion de los estados (datos) como las funciones controladoras
+(callbacks) se propagan desde los componentes padres hacia los hijos estrictamente
+mediante Props, cumpliendo con cada hito exigido en la Guia 1 y la Guia 2 de Duoc UC.
+
+
+2. GLOSARIO DE TECNICISMOS Y CONCEPTOS CLAVE
+--------------------------------------------------------------------------------
+* PROPS (Properties):
+  Mecanismo nativo de React para transferir informacion, configuraciones y
+  funciones desde un componente padre hacia un componente hijo.
+  Regla de oro: Son estrictamente INMUTABLES (de solo lectura) para el hijo.
+
+* STATE (Estado):
+  Estructura reactiva mutable interna gestionada con el hook useState().
+  Cuando el estado cambia mediante su funcion actualizadora (setCarrito, setUsuario),
+  React activa un ciclo de re-renderizado automatico en la interfaz.
+
+* LIFTING STATE UP (Elevacion de Estado):
+  Patron de diseno donde el estado compartido se centraliza en el ancestro comun
+  mas cercano (en este caso App.jsx), para actuar como la 'Unica Fuente de la
+  Verdad' (Single Source of Truth).
+
+* OBJECT DESTRUCTURING (Desestructuracion de Props):
+  Sintaxis estandar de ECMAScript (ES6) que permite extraer directamente las
+  propiedades de un objeto dentro de los parametros de la funcion:
+  Ejemplo:
+     function BarraNavegacion({ totalCarrito, usuario, onLogout }) { ... }
+  En vez de:
+     function BarraNavegacion(props) { ... props.totalCarrito ... }
+  Ambas representan exactamente el uso de Props, pero la primera es la sintaxis
+  moderna y recomendada por React y por la propia Guia de Duoc.
+
+* CALLBACK PROPS (Props de Retrollamada o Funciones como Props):
+  Paso de funciones como props desde el componente padre al hijo. Permite al
+  hijo disparar eventos y solicitar cambios al componente padre (ej: agregarAlCarrito,
+  onLogin, onLogout, aumentarCantidad).
+
+* INMUTABILIDAD Y OPERADOR SPREAD (...):
+  Principio por el cual los estados nunca se modifican directamente (nunca array.push()).
+  En su lugar, se crean nuevas copias del array u objeto usando el operador de
+  propagacion: [...carrito, nuevoProducto].
+
+
+3. MAPEO COMPONENTE POR COMPONENTE EN TechStore_React
+--------------------------------------------------------------------------------
+
+A) BarraNavegacion.jsx
+   Recibe como Props:
+   - totalCarrito [Prop de Dato - Number]:
+     Total acumulado de unidades para mostrar en la insignia roja del carrito.
+   - usuario [Prop de Dato - String / Null]:
+     Nombre de la sesion activa para renderizar el saludo o boton de login.
+   - onLogout [Prop de Funcion - Callback]:
+     Funcion para cerrar sesion y limpiar almacenamiento en App.jsx.
+
+B) Productos.jsx
+   Recibe como Props:
+   - agregarAlCarrito [Prop de Funcion - Callback]:
+     Recibe la funcion desde App.jsx y la reenvia como prop a ListaProductos.
+
+C) ListaProductos.jsx
+   Recibe como Props:
+   - productos [Prop de Dato - Array]:
+     Arreglo con el catalogo de productos a recorrer con map().
+   - mostrarDetalle [Prop de Configuracion - Boolean]:
+     Bandera booleana para decidir si mostrar boton y precio.
+   - agregarAlCarrito [Prop de Funcion - Callback]:
+     Propagacion de la funcion hacia cada tarjeta individual Producto.
+
+D) Producto.jsx (Tarjeta individual)
+   Recibe como Props:
+   - producto [Prop de Dato - Object]:
+     Objeto con id, nombre, precio, descripcion e imagen.
+   - mostrarDetalle [Prop de Configuracion - Boolean]:
+     Determina si se renderizan los detalles de la tarjeta.
+   - agregarAlCarrito [Prop de Funcion - Callback]:
+     Al hacer clic, ejecuta: onClick={() => agregarAlCarrito(producto)}.
+
+E) CarritoPage.jsx (Pagina de Liquidacion)
+   Recibe como Props:
+   - carrito [Prop de Dato - Array]:
+     Lista completa de productos actualmente en el carro con sus cantidades.
+   - aumentarCantidad [Prop de Funcion - Callback]:
+     Incrementa unidades por ID en el State central.
+   - disminuirCantidad [Prop de Funcion - Callback]:
+     Disminuye unidades por ID en el State central.
+   - eliminarDelCarrito [Prop de Funcion - Callback]:
+     Remueve un producto del State central por ID.
+   - vaciarCarrito [Prop de Funcion - Callback]:
+     Limpia el carrito al realizar el pago.
+
+F) Login.jsx
+   Recibe como Props:
+   - onLogin [Prop de Funcion - Callback]:
+     Notifica a App.jsx cuando las credenciales son validas para activar la sesion.
+
+G) ProtectedRoute.jsx
+   Recibe como Props:
+   - usuario [Prop de Dato - String / Null]:
+     Verifica si el usuario esta autorizado para acceder a la ruta.
+   - children [Prop Especial de React - ReactNode]:
+     El componente hijo que se autoriza a mostrar.
+
+
+4. RESPALDO Y EVIDENCIA CON LAS GUIAS DE DUOC UC
+--------------------------------------------------------------------------------
+1. Guia 1 (Puntos 9, 14 y 15):
+   La guia ensena textualmente en su pagina 8:
+   'Estoy enviando 2 props: producto y la funcion agregarAlCarrito'
+   En el codigo de la guia se escribe:
+   function ListaProductos({ agregarAlCarrito }) {
+     return (
+       {productos.map(producto => (
+         <Producto key={producto.id} producto={producto} agregarAlCarrito={agregarAlCarrito} />
+       ))}
+     );
+   }
+
+2. Guia 2 (HITO 1.2 Paso 2):
+   La guia 2 explica textualmente la necesidad de usar Props para los botones del carrito:
+   '¿Por que? La funcion vive en App, pero el boton esta en Carrito. Por eso la enviamos como Prop.'
+   <Carrito
+     carrito={carrito}
+     aumentarCantidad={aumentarCantidad}
+     disminuirCantidad={disminuirCantidad}
+     eliminarDelCarrito={eliminarDelCarrito}
+   />
+
+
+5. BANCO DE PREGUNTAS TIPICAS DEL PROFESOR Y RESPUESTAS
+--------------------------------------------------------------------------------
+
+PREGUNTA 1:
+¿Por que no usas 'props.nombre' y en su lugar usas '{ nombre }'?
+RESPUESTA TECNICA:
+'Porque se aplica Desestructuracion de Objetos (Object Destructuring), una
+caracteristica nativa de ECMAScript 6 (ES6). Ambos codigos hacen exactamente lo
+mismo y consumen las Props de React, pero la desestructuracion evita repetir la
+palabra props, hace el codigo mas legible y es el estandar ensenado en la Guia.'
+
+PREGUNTA 2:
+¿Donde esta guardado el estado del carrito y por que no esta dentro de CarritoPage?
+RESPUESTA TECNICA:
+'El estado reside en el componente raiz App.jsx aplicando la tecnica "Lifting State Up".
+El carrito debe ser consumido por CarritoPage (para listar), por BarraNavegacion
+(para el contador de productos) y por Productos (para anadir). Al elevarlo a App.jsx,
+se convierte en la unica fuente de la verdad (Single Source of Truth) y se comparte
+a los demas mediante Props.'
+
+PREGUNTA 3:
+¿Como hace el boton "Anadir al Carrito" de Producto para modificar el estado de App.jsx?
+RESPUESTA TECNICA:
+'A traves de una "Callback Prop" (Prop de Retrollamada). App.jsx le traspasa la
+referencia de la funcion agregarAlCarrito a traves de la jerarquia de componentes.
+Cuando el usuario hace clic, Producto invoca la prop pasando su propio objeto producto.
+Eso dispara el setCarrito en App.jsx, manteniendo la inmutabilidad.'
+
+PREGUNTA 4:
+¿Las props pueden ser modificadas directamente por el componente hijo?
+RESPUESTA TECNICA:
+'No, jamas. En la arquitectura de React las props son estrictamente de solo lectura
+(inmutables). La modificacion de datos siempre la debe efectuar el dueno del estado
+a traves de sus funciones actualizadoras (setters).'

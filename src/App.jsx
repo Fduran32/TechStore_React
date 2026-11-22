@@ -12,6 +12,7 @@ import MisCompras from "./pages/MisCompras";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { authService } from "./services/authService";
 function App() {
   // State: recuerda qué página se está mostrando
   
@@ -23,24 +24,36 @@ function App() {
   });
   const [mensajeAlerta, setMensajeAlerta] = useState(null);
   // Usuario de sesión: se lee de localStorage solo al montar
-  const [usuario, setUsuario] = useState(() => {
-    const sesion = localStorage.getItem("usuario") || null;
-    console.log("👤 [STATE INICIAL] Sesión recuperada desde localStorage:", sesion);
-    return sesion;
-  });
+    // Usuario y Rol de sesion: se recuperan de localStorage al montar
+  const [usuario, setUsuario] = useState(() => localStorage.getItem("usuario") || null);
+  const [rol, setRol] = useState(() => localStorage.getItem("rol") || null);
 
-  function iniciarSesion(nombre) {
-    console.log("✅ [STATE USUARIO] Sesión iniciada para:", nombre);
-    localStorage.setItem("usuario", nombre);
-    setUsuario(nombre);
+  // Verificacion de token ante recarga (F5)
+  useEffect(() => {
+    if (authService.estaAutenticado()) {
+      authService.validarTokenServidor().then((res) => {
+        if (!res) {
+          console.warn("[WARN][AUTH] Sesion vencida detectada en F5. Limpiando...");
+          cerrarSesion();
+        } else {
+          console.log("[INFO][AUTH] Sesion activa confirmada por el servidor para:", res.rut);
+        }
+      });
+    }
+  }, []);
+
+  function iniciarSesion(rut, rolUsuario) {
+    console.log("[INFO][STATE] Sesion iniciada para:", rut, "Rol:", rolUsuario);
+    setUsuario(rut);
+    setRol(rolUsuario);
   }
 
   function cerrarSesion() {
-    console.log("🚪 [STATE USUARIO] Sesión cerrada. Usuario eliminado:", usuario);
-    localStorage.removeItem("usuario");
+    console.log("[INFO][STATE] Cerrando sesion...");
+    authService.logout();
     setUsuario(null);
+    setRol(null);
   }
-
   function agregarAlCarrito(producto) {
     // 1. Verificamos si hay usuario conectado
     if (!usuario) {
@@ -117,23 +130,14 @@ function App() {
   }, [usuario]);
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-    <BarraNavegacion totalCarrito={totalUnidades} usuario={usuario} onLogout={cerrarSesion}/>
+    <BarraNavegacion totalCarrito={totalUnidades} usuario={usuario} rol={rol} onLogout={cerrarSesion}/>
 
 
 
       <main className="layout-wrapper my-5">
         <Routes>
-          <Route
-          path="/login"
-          element={
-            usuario ? (
-              // Si ya hay sesión, no tiene sentido mostrar el login: volvemos al inicio
-              <Navigate to="/" replace />
-            ) : (
-              <Login onLogin={iniciarSesion} />
-            )
-          }
-          />
+          <Route path="/login" element={<Login onLogin={iniciarSesion} />} />
+                   
           <Route path="/" element={<Inicio/>}/>
           <Route
           path="/productos"

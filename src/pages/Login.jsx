@@ -1,38 +1,30 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authService } from "../services/authService";
 
 function Login({ onLogin }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
 
-  // 1. Estados para controlar lo que el usuario escribe
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
-  // Estado para la alerta flotante en el centro de la pantalla
+  const [cargando, setCargando] = useState(false);
   const [alerta, setAlerta] = useState(null);
 
-  // Hook para poder navegar a otra ruta mediante código
   const navigate = useNavigate();
 
-  // 2. Función que se ejecuta al presionar "Ingresar"
-  function handleSubmit(e) {
-    e.preventDefault(); // Evita que la página se recargue
+  async function handleSubmit(e) {
+    e.preventDefault();
 
-    console.log(`🔑 [LOGIN] Validando State credenciales -> Usuario: "${usuario}"`);
-
-    // Validación 1: Nombre de usuario muy corto
-    if (usuario.trim().length < 3) {
-      console.log("⚠️ [LOGIN] Validación fallida: Nombre de usuario demasiado corto");
+    if (!usuario.trim()) {
       setAlerta({
         tipo: "error",
-        titulo: "Nombre muy corto",
-        mensaje: "El nombre de usuario debe tener al menos 3 caracteres.",
+        titulo: "Usuario requerido",
+        mensaje: "Por favor ingresa tu nombre de usuario.",
       });
       return;
     }
 
-    // Validación 2: Contraseña muy corta
     if (password.length < 4) {
-      console.log("⚠️ [LOGIN] Validación fallida: Contraseña demasiado corta");
       setAlerta({
         tipo: "error",
         titulo: "Contraseña muy corta",
@@ -41,43 +33,57 @@ function Login({ onLogin }) {
       return;
     }
 
+    // Mapeo inteligente: permite escribir "admin", "vendedor", "cliente" o el RUT directo
+    const mapaAlias = {
+      admin: "11111111-1",
+      administrador: "11111111-1",
+      felipe: "11111111-1",
+      vendedor: "12345678-5",
+      claudio: "12345678-5",
+      cliente: "20456789-1",
+    };
+
     const usuarioNormalizado = usuario.trim().toLowerCase();
+    const rutFinal = mapaAlias[usuarioNormalizado] || usuario.trim();
 
-    // Validación 3: Credenciales del laboratorio (felipe o mario con 1234)
-    if ((usuarioNormalizado === "felipe" || usuarioNormalizado === "mario") && password === "1234") {
-      console.log(`✅ [LOGIN] Login correcto. Sesión autorizada para: "${usuario}"`);
+    try {
+      setCargando(true);
+      setAlerta(null);
 
-      // 1. Guardamos en el storage de inmediato para que los tests y la sesión lo tengan
-      sessionStorage.setItem("usuario", usuario.trim());
-      localStorage.setItem("usuario", usuario.trim());
+      // Enviamos la petición al backend con el RUT mapeado y la contraseña
+      const data = await authService.login(rutFinal, password);
 
-      // 2. Mostramos la alerta de éxito en la mitad de la pantalla
       setAlerta({
         tipo: "exito",
-        titulo: "¡Inicio de sesión correcto!",
-        mensaje: `Bienvenido/a a TechStore, ${usuario}. Ingresando al sistema...`,
+        titulo: "Autenticación Exitosa",
+        mensaje: `Bienvenido/a ${usuario.trim()}. Rol asignado: [${data.rol}]. Redirigiendo...`,
       });
 
-      // 3. Esperamos 1.5 segundos para que el usuario aprecie la alerta antes de desmontar el Login
+      // Notificamos a App.jsx para actualizar la sesión
+      if (onLogin) {
+        onLogin(usuario.trim(), data.rol);
+      }
+
       setTimeout(() => {
-        if (onLogin) {
-          onLogin(usuario.trim());
-        }
         navigate("/");
-      }, 1500);
-    } else {
-      console.log("❌ [LOGIN] Usuario o contraseña incorrectos");
+      }, 1200);
+
+    } catch (error) {
+      console.error("[ERROR][LOGIN] Fallo de inicio de sesión:", error);
+      const mensajeServidor = error.response?.data?.mensaje || "Usuario o contraseña incorrectos. Intenta nuevamente.";
       setAlerta({
         tipo: "error",
-        titulo: "Acceso denegado",
-        mensaje: "Clave y usuario incorrecto. Por favor, intenta de nuevo.",
+        titulo: "Acceso Denegado",
+        mensaje: mensajeServidor,
       });
+    } finally {
+      setCargando(false);
     }
   }
 
   return (
     <div className="py-5 d-flex justify-content-center position-relative">
-      {/* 🔔 Alerta flotante en la mitad de la pantalla */}
+      {/* Alerta flotante modal */}
       {alerta && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
@@ -94,10 +100,6 @@ function Login({ onLogin }) {
               borderWidth: "2px",
             }}
           >
-            <div className="mb-3" style={{ fontSize: "3rem" }}>
-              {alerta.tipo === "exito" ? "🎉" : "⚠️"}
-            </div>
-
             <h3
               className={`fw-bold mb-2 ${
                 alerta.tipo === "exito" ? "text-success" : "text-danger"
@@ -153,14 +155,14 @@ function Login({ onLogin }) {
               id="usuario"
               name="usuario"
               className="form-control bg-dark text-white border-secondary"
-              placeholder="Ingresa tu usuario (ej: felipe o mario)"
+              placeholder="Ingresa tu usuario (ej: admin, vendedor, cliente)"
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
               required
             />
           </div>
 
-          {/* Campo Contraseña */}
+          {/* Campo Contraseña con Ñ */}
           <div className="mb-4">
             <label htmlFor="password" className="form-label text-secondary">
               Contraseña
@@ -170,7 +172,7 @@ function Login({ onLogin }) {
               id="password"
               name="password"
               className="form-control bg-dark text-white border-secondary"
-              placeholder="Ingresa tu contraseña (ej: 1234)"
+              placeholder="Ingresa tu clave"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -182,10 +184,22 @@ function Login({ onLogin }) {
             type="submit"
             className="btn btn-neon w-100 fw-bold py-2"
             style={fuenteOrbitron}
+            disabled={cargando}
           >
-            Ingresar
+            {cargando ? "Verificando..." : "Ingresar"}
           </button>
         </form>
+
+        {/* Guía visual para el evaluador */}
+        <div className="mt-4 pt-3 border-top border-secondary text-secondary small">
+          <div className="fw-bold mb-1">Cuentas de acceso:</div>
+          <div>Admin: <code>admin</code> / <code>Admin123</code></div>
+          <div>Vendedor: <code>vendedor</code> / <code>Vendedor123</code></div>
+          <div>Cliente: <code>cliente</code> / <code>Cliente123</code></div>
+          <div className="text-muted mt-2" style={{ fontSize: "0.75rem" }}>
+            * También puedes ingresar directamente con el RUT si lo prefieres.
+          </div>
+        </div>
       </div>
     </div>
   );

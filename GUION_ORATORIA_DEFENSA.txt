@@ -1,0 +1,209 @@
+================================================================================
+GUION DE ORATORIA Y DEFENSA TECNICA · TECHSTORE
+Guia de apoyo para la exposicion oral de la Evaluacion Parcial 2 (Fullstack II)
+Integrantes: Felipe Duran y Claudio Bertero
+================================================================================
+
+NOTA DE USO:
+Este guion esta redactado en lenguaje natural, fluido y profesional. No necesitas
+memorizarlo al pie de la letra; usalo como una guia clara de las ideas para hablar
+con calma y seguridad. Tiempo estimado total: 8 a 10 minutos.
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 1 · PORTADA
+Tiempo y rol: Felipe y Claudio (0:30 min)
+--------------------------------------------------------------------------------
+Felipe:
+"Buenas tardes profesor/a y companeros. Hoy junto a Claudio les vamos a presentar
+TechStore, una tienda e-commerce enfocada en perifericos gamer que desarrollamos
+para la asignatura de Desarrollo Fullstack II. Nuestro objetivo principal en esta
+entrega fue tomar la base que teniamos en HTML tradicional y evolucionarla por
+completo a una aplicacion moderna de una sola pagina usando React, con manejo
+de estado, diseno responsivo y pruebas unitarias automaticas."
+
+Claudio:
+"El proyecto ya se encuentra publicado y funcionando en internet a traves de
+GitHub Pages, asi que al final de la presentacion tambien les mostraremos una
+demostracion en vivo de todo el flujo de compra."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 2 · PROPUESTA DE VALOR Y FLUJO
+Tiempo y rol: Felipe (1:00 min) · [IE2.1.3: 15%]
+--------------------------------------------------------------------------------
+Felipe:
+"Para comenzar, queriamos resolver un problema clasico que tienen muchas tiendas
+online: las paginas lentas que se recargan cada vez que haces clic en un producto
+o en el carrito. Al pasar la tienda a una Single Page Application (SPA), logramos
+que toda la interaccion ocurra de manera instantanea en el navegador del cliente.
+
+Disenamos un flujo de compra completo de 6 pasos: el usuario entra al inicio,
+explora el catalogo, inicia sesion, va agregando productos al carrito donde puede
+sumar o restar unidades en tiempo real, pasa por una pasarela de pago simulada
+que genera un numero de orden unico, y finalmente puede revisar todo su historial
+en la seccion 'Mis Compras'. Todo esto con retroalimentacion visual inmediata
+gracias a alertas y notificaciones flotantes."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 3 · STACK TECNOLOGICO
+Tiempo y rol: Claudio (1:00 min) · [IE2.1.3: 15%]
+--------------------------------------------------------------------------------
+Claudio:
+"Detras de esta experiencia hay cuatro pilares tecnologicos bien definidos.
+Para la interfaz utilizamos React 19 junto con Vite 8. Elegimos Vite porque compila
+casi instantaneamente y porque React nos permite trabajar con componentes modulares
+y un Virtual DOM que solo redibuja los elementos que realmente cambian en pantalla.
+
+Para movernos entre pantallas sin recargar la pagina usamos React Router 7, que
+ademas nos permite proteger secciones privadas. En la parte visual combinamos
+Bootstrap 5.3 y React-Bootstrap para tener un diseno adaptativo y accesible, con un
+tema oscuro tipo gamer. Y finalmente, para asegurar la calidad del codigo implementamos
+Vitest y Playwright, lo que nos permite correr pruebas automaticas tanto en memoria
+como en un navegador Chromium real antes de publicar con GitHub Actions."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 4 · ARQUITECTURA DE CARPETAS
+Tiempo y rol: Felipe (1:00 min) · [IE2.1.4: 20%]
+--------------------------------------------------------------------------------
+Felipe:
+"Un punto clave que nos pedia la rubrica era mantener una estructura solida y
+limpia. Por eso organizamos el proyecto separando muy bien las responsabilidades.
+
+En la carpeta 'pages' dejamos unicamente las vistas principales que corresponden
+a una ruta, como Inicio, Catalogo, Login o Carrito. Por otro lado, en la carpeta
+'components' pusimos todos los bloques reutilizables que se pueden usar en distintas
+paginas, como las tarjetas de Producto, la Barra de Navegacion o el guardian de rutas.
+
+La informacion de los productos y la logica para guardar en localStorage las
+aislamos en 'data' y 'utils'. Esto es muy util porque si el dia de manana la tienda
+se conecta a una base de datos real con backend, solo debemos modificar esos archivos
+sin romper la interfaz visual."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 5 · FLUJO DE DATOS (PROPS Y STATE)
+Tiempo y rol: Claudio (1:00 min) · [IE2.1.4: 20%]
+--------------------------------------------------------------------------------
+Claudio:
+"Uno de los conceptos mas importantes en React es como viaja la informacion.
+En nuestro proyecto aplicamos el patron conocido como 'Lifting State Up' o elevacion
+de estado. El estado principal, que es el carrito y el usuario conectado, lo dejamos
+en el componente padre que es App.jsx.
+
+Desde ahi, la informacion baja hacia los componentes hijos a traves de 'Props de
+datos', por ejemplo para que la barra de arriba sepa cuantos productos hay y pinte
+el contador. Y cuando el usuario hace clic en 'Anadir al Carrito' o pulsa el boton
+'+' para sumar unidades, el componente hijo le avisa al padre usando una 'Callback Prop',
+que es una funcion que el padre le presto. Asi App.jsx actualiza el estado y toda
+la pantalla se mantiene perfectamente sincronizada."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 6 · SEGURIDAD Y FORMULARIOS
+Tiempo y rol: Felipe (1:00 min) · [IE2.1.4: 20%]
+--------------------------------------------------------------------------------
+Felipe:
+"En la parte de seguridad y formularios implementamos dos cosas fundamentales.
+Primero, el componente ProtectedRoute, que funciona como un guardian de acceso:
+si un usuario intenta entrar directamente a la URL del carrito o de sus compras
+sin haber iniciado sesion, el sistema lo detecta y lo redirige automaticamente
+a la pantalla de login.
+
+Y segundo, en el formulario de inicio de sesion utilizamos inputs controlados por
+el estado de React. Esto significa que cada letra que el usuario escribe se valida
+al instante. Si el usuario escribe menos de 3 caracteres o una contrasena muy corta,
+la aplicacion le muestra una alerta modal clara indicandole el error antes de enviar
+los datos, evitando errores y mejorando la usabilidad."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 7 · DISENO RESPONSIVO
+Tiempo y rol: Claudio (1:00 min) · [IE2.1.4: 20%]
+--------------------------------------------------------------------------------
+Claudio:
+"En cuanto al diseno responsivo, nos aseguramos de que la tienda se viera impecable
+tanto en computadores de escritorio como en telefonos moviles. Usamos el sistema
+de 12 columnas de Bootstrap: en celular cada tarjeta ocupa el ancho completo (col-12),
+en tablets se acomodan de a dos (col-md-6) y en pantallas grandes se ven 3 por fila (col-lg-4).
+
+Un detalle muy importante que optimizamos fue la pantalla del carrito: en vez de
+usar una tabla ancha tradicional que en los celulares obliga a deslizar hacia los
+lados, disenamos tarjetas flexibles donde arriba ves el producto y abajo tienes
+comodamente los botones para sumar o restar y el boton de eliminar, todo visible
+en la misma pantalla."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 8 · ESTRATEGIA DE PRUEBAS UNITARIAS
+Tiempo y rol: Felipe (1:00 min) · [IE2.2.2: 15%]
+--------------------------------------------------------------------------------
+Felipe:
+"Para asegurar que todo funcione como corresponde y cumplir con la rubrica de
+calidad, disenamos una bateria completa de pruebas unitarias con Vitest. La rubrica
+exigia 10 pruebas, pero nosotros implementamos 17 pruebas en total y todas se ejecutan
+con exito en solo 10 segundos.
+
+Para escribir cada prueba seguimos la metodologia estandar AAA: primero preparamos
+los datos (Arrange), luego simulamos la accion del usuario como un clic o escribir
+texto (Act), y finalmente verificamos que el resultado sea el correcto (Assert).
+Tenemos pruebas rapidas sobre los componentes en memoria y pruebas completas en
+navegador con Playwright que verifican el calculo de precios, los botones de cantidad
+y el inicio de sesion."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 9 · MOCKS Y ENTORNO DE PRUEBAS
+Tiempo y rol: Claudio (1:00 min) · [IE2.3.2: 10%]
+--------------------------------------------------------------------------------
+Claudio:
+"Para que las pruebas sean confiables y no dependan de factores externos, utilizamos
+'Mocks' con la funcion vi.fn() de Vitest. Un mock es como una funcion simulada que
+nos permite comprobar si un boton realmente llamo a la accion correcta sin tener
+que ejecutar todo el sistema de fondo.
+
+Tambien usamos MemoryRouter para probar componentes que tienen enlaces de navegacion
+sin necesidad de abrir un navegador web real. Ademas, nos aseguramos de que despues
+de cada prueba el entorno se limpie automaticamente para que los datos de un test
+no interfieran con el siguiente. El resultado es un proceso de pruebas solido,
+predecible y con 100% de aprobacion."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 10 · DEMOSTRACION EN VIVO
+Tiempo y rol: Felipe y Claudio (1:30 min)
+--------------------------------------------------------------------------------
+Felipe:
+"Ahora queremos mostrarles brevemente la aplicacion en funcionamiento real desde
+nuestro despliegue en GitHub Pages.
+(Abrir en pantalla: https://fduran32.github.io/TechStore_React/)
+Como pueden ver, estamos en la pagina de inicio. Podemos navegar al catalogo de
+productos de forma inmediata sin que el navegador recargue la pagina."
+
+Claudio:
+"Si intentamos ir al carrito sin sesion, el sistema nos avisa y nos pide iniciar
+sesion. Ingresamos con nuestras credenciales de prueba, vemos el mensaje de bienvenida
+y ahora si podemos agregar perifericos. En el carrito aumentamos y disminuimos unidades,
+vemos como el total se recalcula al instante, presionamos 'Pagar', vemos el proceso
+de compra de 3 segundos y se genera nuestra orden de despacho que queda guardada
+en 'Mis Compras'."
+
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 11 · CONCLUSIONES Y CI/CD
+Tiempo y rol: Felipe y Claudio (0:45 min)
+--------------------------------------------------------------------------------
+Felipe:
+"Para cerrar, queremos destacar que todo el ciclo de desarrollo estuvo respaldado
+por Git y GitHub. Cada vez que haciamos un cambio y lo subiamos a la rama principal,
+un flujo automatizado de GitHub Actions compilaba el proyecto, verificaba que no
+hubiera errores y actualizaba automaticamente el sitio web en GitHub Pages."
+
+Claudio:
+"Este proyecto nos permitio poner en practica de manera integral la arquitectura
+moderna con React, la separacion en componentes, el control de estado y la cultura
+de calidad mediante pruebas unitarias. Les agradecemos mucho por su tiempo y atencion,
+y quedamos muy atentos a cualquier pregunta que el profesor o nuestros companeros
+quieran hacernos."
+================================================================================

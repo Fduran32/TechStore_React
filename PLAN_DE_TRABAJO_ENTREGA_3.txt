@@ -1,0 +1,124 @@
+================================================================================
+PLAN DE TRABAJO Y ARQUITECTURA TECNICA · EVALUACION 3 (40%)
+Asignatura: Desarrollo Fullstack II (DSY1104)
+Integrantes: Felipe Duran y Claudio Bertero
+================================================================================
+
+1. RESUMEN EJECUTIVO
+--------------------------------------------------------------------------------
+El objetivo de la Evaluacion Parcial 3 es transformar la tienda online TechStore
+(desarrollada en React en la entrega anterior) en una aplicacion Fullstack
+empresarial completa. Para lograrlo, el frontend se conectara mediante Axios a un
+backend desarrollado en Spring Boot (Java), respaldado por una base de datos
+relacional MySQL y protegido por autenticacion basada en tokens JWT con control
+de roles.
+
+Adicionalmente, se implementaran dos microservicios independientes, despliegue
+en la nube mediante AWS EC2 y una prueba de escalabilidad automatica (Auto Scaling)
+cuando el consumo de memoria/CPU supere el 60%.
+
+
+2. ARQUITECTURA GENERAL DEL SISTEMA
+--------------------------------------------------------------------------------
+1. Frontend (React 19 + Axios):
+   Consume las APIs REST, inyecta el token JWT en cada cabecera con interceptores
+   y restringe vistas segun el rol.
+
+2. Microservicio 1 (Auth Service · Puerto 8081):
+   Registro, login y firma de tokens JWT con roles (ADMIN, VENDEDOR, CLIENTE).
+
+3. Microservicio 2 (Store Service · Puerto 8082):
+   Catalogo de productos, categorias, boletas y detalle, conectado a MySQL.
+
+4. Cloud AWS (EC2 + Auto Scaling):
+   Instancia Ubuntu con regla de escalado automatico al 60% de uso de RAM/CPU
+   monitoreado por CloudWatch.
+
+
+3. MATRIZ DE ROLES Y PERMISOS (PAUTA DUOC UC)
+--------------------------------------------------------------------------------
+* ROL ADMINISTRADOR:
+  - Alcance: Acceso total y sin restricciones a todo el sistema.
+  - Vistas: Dashboard administrativo, gestion completa de usuarios, productos,
+    categorias y ordenes.
+
+* ROL VENDEDOR:
+  - Alcance: Gestion operativa de catalogo y ventas.
+  - Vistas: Visualizacion de lista de productos, detalle de productos y lista
+    de ordenes de compra.
+
+* ROL CLIENTE:
+  - Alcance: Acceso exclusivo como comprador.
+  - Vistas: Navegacion por el catalogo de la tienda, carrito de compras,
+    pasarela de pago y seccion Mis Compras.
+
+
+4. FASES DE DESARROLLO Y REPARTICION DE TAREAS (FELIPE Y CLAUDIO)
+--------------------------------------------------------------------------------
+
+[FASE 1: Base de Datos Relacional y Modelado (Dia 1)]
+Responsable Principal: Claudio · Apoyo: Felipe
+- Disenar el script schema.sql con las 5 tablas exigidas: usuario, categoria,
+  producto, boleta y detalle_boleta.
+- Crear el script data.sql con datos iniciales: perifericos reales y 3 usuarios
+  de prueba con contrasenas encriptadas (BCrypt).
+- Subir los scripts a la carpeta /database del repositorio backend.
+
+[FASE 2: Desarrollo de Microservicios Backend en Spring Boot (Dias 2 y 3)]
+- Microservicio 1: Auth Service (Felipe):
+  Spring Security + JWT. Endpoints /api/v1/auth/login y /validate. Configuracion
+  de expiracion de token y generacion con claims de rol.
+- Microservicio 2: Store Service (Claudio):
+  Entidades JPA, Repositorios y Controladores CRUD para /api/v1/productos,
+  /categorias y /boletas. Conexion a MySQL y documentacion interactiva en Swagger.
+- Validacion conjunta:
+  Probar comunicacion entre microservicios y que Store Service rechace
+  peticiones sin JWT valido.
+
+[FASE 3: Integracion Frontend con Axios y Control de Acceso (Dia 4)]
+- Axios e Interceptores (Felipe):
+  Configurar cliente axiosConfig.js para enviar Authorization: Bearer <token>
+  en cada peticion y capturar errores 401 si el token expira.
+- Persistencia de Sesion (Felipe):
+  Almacenar JWT de forma segura en localStorage y restaurar sesion
+  automaticamente ante recargas (F5).
+- Consumo de APIs y Vistas por Rol (Claudio):
+  Modificar Productos.jsx para leer de la base de datos, CarritoPage.jsx para
+  guardar la compra en boleta, y crear la barra de vendedor y dashboard de admin.
+
+[FASE 4: Despliegue en AWS EC2 y Escalabilidad al 60% (Dia 5)]
+Trabajo Conjunto en AWS (Felipe y Claudio):
+- Creacion y configuracion de instancia EC2 (Ubuntu) en capa gratuita de AWS.
+- Instalacion de Java 17/21 y despliegue de los archivos .jar de ambos
+  microservicios y MySQL.
+- Configuracion de Auto Scaling Group (ASG) y alarma de CloudWatch: cuando el
+  consumo de CPU/RAM supere el 60%, encender automaticamente una segunda instancia.
+- Ejecucion de prueba de estres en terminal para documentar la creacion
+  automatica de la segunda instancia con capturas.
+
+[FASE 5: Documentacion Formal y Preparacion de la Defensa (Dias 6 y 7)]
+- Manual de Usuario con capturas (Felipe):
+  Estructura formal exigida (Figura, Titulo, Imagen borde 1px negro, Nota explicativa).
+- Documento ERS finalizado (Felipe):
+  Especificacion de Requisitos de Software actualizada.
+- Documento de APIs e Integracion (Claudio):
+  Tabla completa de endpoints, parametros, respuestas y capturas de Swagger.
+- Presentacion Oral de 15 minutos (Ambos):
+  Diapositivas sin muros de codigo y guion coordinado para responder las preguntas
+  del docente.
+
+
+5. PONDERACION DE LA NOTA Y RUBRICA OFICIAL
+--------------------------------------------------------------------------------
+* Situacion Evaluativa 1 (Entrega de Encargo e Informes - 40% Grupal):
+  - IE3.1.1: Conexion Backend a Base de Datos y Modelo de Datos (8%)
+  - IE3.2.1: Endpoints API REST CRUD y Swagger (8%)
+  - IE3.2.2: Integracion efectiva Backend <-> Frontend mediante REST (6%)
+  - IE3.3.1: Autenticacion Backend con Roles y JWT (6%)
+  - IE3.3.2: Gestion de Sesion y Persistencia en Frontend (6%)
+  - IE3.3.3: Restricciones de acceso por Rol en Frontend (6%)
+
+* Situacion Evaluativa 2 (Presentacion y Defensa Oral - 60% Individual):
+  - Cada integrante debe exponer durante 15 minutos en equipo + 5 minutos de
+    preguntas individuales del docente sobre los 6 indicadores.
+================================================================================

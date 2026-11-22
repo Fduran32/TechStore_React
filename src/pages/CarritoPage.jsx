@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import clienteAxios from "../services/axiosConfig";
 import { guardarCompra } from "../utils/localStorage";
 
-function CarritoPage({ carrito, aumentarCantidad, disminuirCantidad, eliminarDelCarrito, vaciarCarrito }){
+function CarritoPage({
+  carrito,
+  aumentarCantidad,
+  disminuirCantidad,
+  eliminarDelCarrito,
+  vaciarCarrito,
+}) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
   const [procesando, setProcesando] = useState(false);
   const navigate = useNavigate();
@@ -12,10 +19,28 @@ function CarritoPage({ carrito, aumentarCantidad, disminuirCantidad, eliminarDel
     0
   );
 
-  function manejarPago() {
+  // Función que descuenta el stock en MySQL y concreta la compra
+  async function manejarPago() {
     setProcesando(true);
 
-    const usuario = localStorage.getItem("usuario") || sessionStorage.getItem("usuario") || "usuario";
+    try {
+      console.log(`[INFO][COMPRA] Rebajando stock en MySQL para ${carrito.length} productos...`);
+
+      for (const item of carrito) {
+        const nuevoStock = Math.max(0, (item.stock || 0) - item.cantidad);
+        console.log(`[INFO][STOCK] Rebajando "${item.nombre}": Stock actual ${item.stock} ➔ Nuevo stock: ${nuevoStock}`);
+
+        // Llamada al backend Spring Boot
+        await clienteAxios.patch(`/api/productos/${item.id}/stock`, {
+          stock: nuevoStock,
+        });
+      }
+      console.log("[INFO][COMPRA] Stock rebajado exitosamente en la base de datos.");
+    } catch (error) {
+      console.warn("[WARN][STOCK] No se pudo rebajar stock de algún producto:", error);
+    }
+
+    const usuario = localStorage.getItem("usuario") || "cliente";
 
     const nuevaCompra = {
       id: "TK-" + Math.floor(100000 + Math.random() * 900000),
@@ -32,35 +57,31 @@ function CarritoPage({ carrito, aumentarCantidad, disminuirCantidad, eliminarDel
       estado: "En preparación para despacho 🚚",
     };
 
-    // Guarda la orden en el historial de compras del usuario
+    // Guarda en el historial de compras local
     guardarCompra(nuevaCompra, usuario);
 
-    // Vacía el carrito al presionar pagar
+    // Vacía el carrito
     vaciarCarrito?.();
 
-    // Espera 3 segundos simulando el procesamiento y redirige
+    // Redirige a Compra Exitosa tras 1.5 segundos
     setTimeout(() => {
       navigate("/compra-exitosa", { state: { orden: nuevaCompra } });
-    }, 3000);
+    }, 1500);
   }
 
+  // Vista cuando el carrito está vacío
   if (carrito.length === 0 && !procesando) {
     return (
-      <div className="py-5 d-flex justify-content-center">
-        <div
-          className="card bg-dark text-white border-secondary p-4 shadow-lg text-center"
-          style={{ maxWidth: "420px", width: "100%" }}
-        >
-          <h2 style={fuenteOrbitron} className="text-neon-blue mb-4 fw-bold">
-            🛒 Mi Carrito
-          </h2>
-          <p className="text-secondary fs-5 mb-4">El carrito está vacío</p>
-          <Link
-            to="/productos"
-            className="btn btn-neon w-100 fw-bold py-2"
-            style={fuenteOrbitron}
-          >
-            Ver productos
+      <div className="text-center py-5">
+        <h2 style={fuenteOrbitron} className="text-neon-blue mb-3">
+          🛒 Mi Carrito
+        </h2>
+        <div className="alert alert-secondary d-inline-block px-4 py-3">
+          <p className="mb-0 fs-5">El carrito está vacío</p>
+        </div>
+        <div className="mt-3">
+          <Link to="/productos" className="btn btn-neon fw-bold px-4 py-2" style={fuenteOrbitron}>
+            Ver Catálogo
           </Link>
         </div>
       </div>
@@ -68,8 +89,8 @@ function CarritoPage({ carrito, aumentarCantidad, disminuirCantidad, eliminarDel
   }
 
   return (
-    <div className="py-4 position-relative">
-      {/* ⏳ Overlay de procesamiento de compra durante los 3 segundos */}
+    <div className="container py-4 position-relative">
+      {/* Overlay modal de procesamiento */}
       {procesando && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center"
@@ -90,7 +111,7 @@ function CarritoPage({ carrito, aumentarCantidad, disminuirCantidad, eliminarDel
               Procesando su compra...
             </h3>
             <p className="text-secondary mb-0">
-              Por favor espere unos segundos mientras validamos su pago.
+              Descontando unidades de bodega en la base de datos...
             </p>
           </div>
         </div>
@@ -100,105 +121,91 @@ function CarritoPage({ carrito, aumentarCantidad, disminuirCantidad, eliminarDel
         🛒 Mi Carrito de Compras
       </h2>
 
-      {/* Listado responsivo de productos del carrito (optimizado para móvil y PC) */}
-      <div className="d-flex flex-column gap-3">
-        {carrito.map((producto) => (
-          <div
-            key={producto.id}
-            className="card bg-dark text-white border-secondary p-3 shadow-sm"
-          >
-            <div className="row align-items-center g-3">
-              {/* Foto, nombre y precio unitario */}
-              <div className="col-12 col-md-5">
-                <div className="d-flex align-items-center gap-3">
-                  {producto.imagen && (
-                    <img
-                      src={producto.imagen}
-                      alt={producto.nombre}
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        objectFit: "cover",
-                        borderRadius: "8px",
-                      }}
-                    />
-                  )}
-                  <div>
-                    <h5 className="mb-1 fw-bold">
-                      {producto.emoji || "📦"} {producto.nombre}
-                    </h5>
-                    <p className="mb-0 text-secondary small">
-                      Precio unitario: ${producto.precio.toLocaleString("es-CL")}
-                    </p>
+      <div className="table-responsive">
+        <table className="table table-dark table-hover align-middle border-secondary">
+          <thead>
+            <tr className="text-secondary small">
+              <th>Producto</th>
+              <th>Precio Unitario</th>
+              <th className="text-center">Cantidad</th>
+              <th>SubTotal</th>
+              <th className="text-center">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {carrito.map((producto) => (
+              <tr key={producto.id}>
+                <td>
+                  <div className="d-flex align-items-center gap-3">
+                    {producto.imagen && (
+                      <img
+                        src={producto.imagen}
+                        alt={producto.nombre}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                        }}
+                      />
+                    )}
+                    <span className="fw-bold">{producto.nombre}</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Botones de cantidad (- 2 +) */}
-              <div className="col-6 col-md-3 text-start text-md-center">
-                <div className="btn-group" role="group">
+                </td>
+                <td>${producto.precio?.toLocaleString("es-CL")}</td>
+                <td className="text-center">
+                  <div className="btn-group" role="group">
+                    <button
+                      className="btn btn-outline-danger btn-sm px-2 fw-bold"
+                      onClick={() => disminuirCantidad(producto.id)}
+                    >
+                      -
+                    </button>
+                    <span className="btn btn-dark btn-sm px-3 fw-bold disabled border-secondary">
+                      {producto.cantidad}
+                    </span>
+                    <button
+                      className="btn btn-outline-success btn-sm px-2 fw-bold"
+                      onClick={() => aumentarCantidad(producto.id)}
+                    >
+                      +
+                    </button>
+                  </div>
+                </td>
+                <td className="fw-bold text-neon-blue">
+                  ${(producto.precio * producto.cantidad).toLocaleString("es-CL")}
+                </td>
+                <td className="text-center">
                   <button
-                    className="btn btn-outline-danger btn-sm px-2 px-md-3 fw-bold"
-                    onClick={() => disminuirCantidad(producto.id)}
+                    className="btn btn-danger btn-sm"
+                    onClick={() => eliminarDelCarrito(producto.id)}
                   >
-                    -
+                    🗑️ Eliminar
                   </button>
-                  <span className="btn btn-dark btn-sm px-3 fw-bold disabled border-secondary text-white">
-                    {producto.cantidad}
-                  </span>
-                  <button
-                    className="btn btn-outline-success btn-sm px-2 px-md-3 fw-bold"
-                    onClick={() => aumentarCantidad(producto.id)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Subtotal y Botón Eliminar */}
-              <div className="col-6 col-md-4 d-flex justify-content-end align-items-center gap-2 gap-md-3">
-                <div className="text-end">
-                  <small className="text-secondary d-none d-md-block">Subtotal</small>
-                  <span className="fw-bold text-neon-blue fs-5">
-                    ${(producto.precio * producto.cantidad).toLocaleString("es-CL")}
-                  </span>
-                </div>
-
-                <button
-                  className="btn btn-danger btn-sm px-2 px-md-3"
-                  onClick={() => eliminarDelCarrito(producto.id)}
-                  title="Eliminar producto"
-                >
-                  🗑️ Eliminar
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
+      {/* Barra de Total y Botón de Pago */}
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 p-3 bg-dark border border-secondary rounded">
-        <Link to="/productos" className="btn btn-outline-secondary">
-          ← Continuar comprando
-        </Link>
+        <h3 className="mb-0 fw-bold" style={fuenteOrbitron}>
+          Total a pagar:{" "}
+          <span className="text-neon-blue">
+            ${total.toLocaleString("es-CL")}
+          </span>
+        </h3>
 
-        <div className="d-flex align-items-center gap-3">
-          <h3 className="mb-0 fw-bold" style={fuenteOrbitron}>
-            Total a pagar:{" "}
-            <span className="text-neon-blue">
-              ${total.toLocaleString("es-CL")}
-            </span>
-          </h3>
-
-          <button
-            className="btn btn-neon px-4 py-2 fw-bold"
-            style={fuenteOrbitron}
-            onClick={manejarPago}
-            disabled={procesando}
-          >
-            💳 Pagar
-          </button>
-        </div>
+        <button
+          className="btn btn-neon fw-bold px-4 py-2"
+          style={fuenteOrbitron}
+          onClick={manejarPago}
+          disabled={procesando}
+        >
+          {procesando ? "Procesando..." : "💳 Pagar y Finalizar Compra"}
+        </button>
       </div>
     </div>
   );
