@@ -34,10 +34,10 @@ describe("Pruebas de navegador del inicio de sesión (Chromium)", () => {
     const user = userEvent.setup();
     renderLogin();
 
-    await user.type(screen.getByLabelText(/usuario/i), "mario");
+    await user.type(screen.getByLabelText(/usuario/i), "claudio");
     await user.type(screen.getByLabelText(/contraseña/i), "1234");
 
-    expect(screen.getByLabelText(/usuario/i)).toHaveValue("mario");
+    expect(screen.getByLabelText(/usuario/i)).toHaveValue("claudio");
     expect(screen.getByLabelText(/contraseña/i)).toHaveValue("1234");
   });
 
@@ -45,13 +45,13 @@ describe("Pruebas de navegador del inicio de sesión (Chromium)", () => {
     const user = userEvent.setup();
     renderLogin();
 
-    await user.type(screen.getByLabelText(/usuario/i), "mario");
+    await user.type(screen.getByLabelText(/usuario/i), "claudio");
     await user.type(screen.getByLabelText(/contraseña/i), "1234");
     await user.click(
       screen.getByRole("button", { name: /ingresar/i })
     );
 
-    expect(sessionStorage.getItem("usuario")).toBe("mario");
+    expect(sessionStorage.getItem("usuario")).toBe("claudio");
     expect(
       await screen.findByRole("heading", { name: /página principal/i }, { timeout: 3000 })
     ).toBeInTheDocument();
