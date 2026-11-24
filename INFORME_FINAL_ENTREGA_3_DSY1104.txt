@@ -1,0 +1,108 @@
+================================================================================
+DUOC UC · ESCUELA DE INFORMÁTICA Y TELECOMUNICACIONES
+DSY1104 · DESARROLLO FULLSTACK II · EVALUACIÓN PARCIAL 3 (40% GRUPAL)
+INFORME FINAL DE PROYECTO: TECHSTORE FULLSTACK
+Integrantes: Felipe Durán y Claudio Bertero
+Fecha: Noviembre 2026 | Estado General: 100% COMPLETADO Y OPERATIVO
+================================================================================
+
+1. RESUMEN EJECUTIVO DEL PROYECTO
+--------------------------------------------------------------------------------
+El proyecto TechStore Fullstack es una plataforma de comercio electrónico 
+especializada en hardware y periféricos de alto rendimiento. Conforme a las 
+indicaciones del docente, la solución se estructuró bajo una arquitectura 
+desacoplada cliente-servidor 100% local:
+
+• Backend Microservicio (Spring Boot 4 / Java 17 - Puerto 8081):
+  Controladores REST, seguridad corporativa con Spring Security y tokens JWT
+  (JJWT 0.12.6), CORS dinámico multipuerto y operaciones CRUD.
+• Base de Datos Relacional (MySQL en Laragon - Puerto 3306):
+  Base de datos tienda_perifericos con tablas usuario y producto, datos reales,
+  claves foráneas, UTF-8 y contraseñas cifradas en BCrypt.
+• Frontend Web (React 19 / Vite - Puerto 5173 / 5174):
+  Single Page Application con Axios e interceptores Bearer, control de acceso
+  por roles (RBAC), panel de inventario y descuento automático de stock en vivo.
+
+
+2. REPOSITORIOS Y ROLES DEL EQUIPO
+--------------------------------------------------------------------------------
+• Felipe Durán:
+  - Componente: Frontend Web (React 19, Axios, JWT Interceptor, Panel Inventario,
+    Guards por rol, Carrito y Catálogo en vivo).
+  - Repositorio Oficial: https://github.com/Fduran32/TechStore_React.git
+
+• Claudio Bertero:
+  - Componente: Backend Microservicio (Spring Boot 4, Java 17, Spring Security,
+    Endpoints REST CRUD, Base de Datos MySQL 3306).
+  - Repositorio Oficial: https://github.com/Cbertero/ms_techstore.git
+
+
+3. MATRIZ DE CUMPLIMIENTO FRENTE A LA RÚBRICA DUOC UC (100% CUMPLIDO)
+--------------------------------------------------------------------------------
+• IE3.1.1 (8%) - Conexión Backend a Base de Datos:
+  100% CUMPLIDO. MySQL en Laragon (puerto 3306), base tienda_perifericos con
+  tablas producto y usuario, integridad referencial y UTF-8.
+
+• IE3.2.1 (8%) - Endpoints API REST CRUD con Spring Boot:
+  100% CUMPLIDO. Endpoints completos en /api/productos (GET, POST, PUT, 
+  PATCH /stock, DELETE) y endpoints de autenticación en /api/v1/auth.
+
+• IE3.2.2 (6%) - Integración Backend <-> Frontend con REST:
+  100% CUMPLIDO. Catálogo dinámico, Portada Inicio, panel de inventario y
+  descuento automático de existencias en MySQL al procesar el pago.
+
+• IE3.3.1 (6%) - Autenticación Backend con Roles y JWT:
+  100% CUMPLIDO. Firma criptográfica HMAC-SHA256 con JJWT 0.12.6, expiración de
+  24 horas, roles encriptados y claims validados en cada solicitud.
+
+• IE3.3.2 (6%) - Gestión de Sesión y Persistencia en Frontend:
+  100% CUMPLIDO. Almacenamiento en localStorage, inyección automática del
+  header Authorization: Bearer, captura de 401 y persistencia ante recarga (F5).
+
+• IE3.3.3 (6%) - Restricciones de Acceso por Rol en Frontend (RBAC):
+  100% CUMPLIDO. Componente ProtectedRoute con rolesPermitidos (ADMINISTRADOR y
+  VENDEDOR para inventario). Redirección automática y Navbar adaptativo.
+
+
+4. FUNCIONALIDADES CLAVE IMPLEMENTADAS
+--------------------------------------------------------------------------------
+1. Panel de Inventario (/inventario):
+   Tabla interactiva para visualizar productos, buscador en tiempo real, filtro
+   por categoría, modales para crear nuevo producto (POST), editar (PUT),
+   ajuste rápido de existencias (PATCH /stock) y eliminación (DELETE, solo Admin).
+
+2. Control de Acceso por Roles (RBAC):
+   - Administrador: Acceso completo a catálogo, compras y gestión total de inventario.
+   - Vendedor: Acceso a catálogo, compras e inventario (crear, editar, stock), con
+     botón de eliminar deshabilitado por seguridad.
+   - Cliente: Acceso a catálogo, carrito y compras. Inventario completamente
+     bloqueado con expulsión automática si intenta forzar la URL.
+
+3. Descuento de Stock en Vivo:
+   Al presionar "Pagar" en el carrito, se envían peticiones PATCH a MySQL
+   descontando exactamente las unidades adquiridas.
+
+4. Portada y Catálogo 100% Sincronizados:
+   Tanto Inicio.jsx como Productos.jsx leen los productos y existencias reales
+   desde la base de datos MySQL.
+
+5. Nombres de Usuario Amigables:
+   La interfaz saluda cordialmente con el nombre limpio de la cuenta
+   ("Hola cliente / vendedor / administrador") tanto en la barra superior como
+   en el historial de pedidos.
+
+
+5. GUÍA RÁPIDA DE PRUEBA PARA EL EVALUADOR
+--------------------------------------------------------------------------------
+1. Administrador:
+   Usuario: admin (o 11111111-1) | Clave: Admin123
+   Rol: ADMINISTRADOR (Insignia Roja) | Acceso total con eliminación de productos.
+
+2. Vendedor:
+   Usuario: vendedor (o 12345678-5) | Clave: Vendedor123
+   Rol: VENDEDOR (Insignia Amarilla) | Acceso a gestión sin permisos de borrado.
+
+3. Cliente:
+   Usuario: cliente (o 20456789-1) | Clave: Cliente123
+   Rol: CLIENTE (Insignia Cyan) | Solo compras y catálogo (Inventario restringido).
+================================================================================
