@@ -3,8 +3,48 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import CarritoPage from "./CarritoPage";
+import clienteAxios from "../services/axiosConfig";
+
+vi.mock("../services/axiosConfig", () => ({ default: { post: vi.fn() } }));
 
 describe("Página CarritoPage", () => {
+  function renderCompra(vaciarCarrito) {
+    render(
+      <MemoryRouter>
+        <CarritoPage
+          carrito={[{ id: 1, nombre: "Mouse Gamer", precio: 20000, cantidad: 2 }]}
+          vaciarCarrito={vaciarCarrito}
+        />
+      </MemoryRouter>
+    );
+  }
+
+  it("descuenta el stock en el servidor al pagar y vacía el carrito", async () => {
+    clienteAxios.post.mockResolvedValueOnce({});
+    const vaciarCarrito = vi.fn();
+    renderCompra(vaciarCarrito);
+
+    await userEvent.click(screen.getByRole("button", { name: /Pagar/i }));
+
+    expect(clienteAxios.post).toHaveBeenCalledWith("/api/compras", {
+      items: [{ productoId: 1, cantidad: 2 }],
+    });
+    expect(vaciarCarrito).toHaveBeenCalledTimes(1);
+  });
+
+  it("no concreta la compra si no hay stock suficiente", async () => {
+    clienteAxios.post.mockRejectedValueOnce({
+      response: { status: 409, data: { mensaje: "No hay stock suficiente de Mouse Gamer" } },
+    });
+    const vaciarCarrito = vi.fn();
+    renderCompra(vaciarCarrito);
+
+    await userEvent.click(screen.getByRole("button", { name: /Pagar/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/No hay stock suficiente/);
+    expect(vaciarCarrito).not.toHaveBeenCalled();
+  });
+
   it("muestra mensaje de carrito vacío cuando no hay productos", () => {
     render(
       <MemoryRouter>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { obtenerCompras } from "../utils/localStorage";
+import { obtenerImagenProducto } from "../utils/imagenesProductos";
 
 function MisCompras() {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
@@ -123,12 +124,12 @@ function MisCompras() {
                           <div className="d-flex align-items-center gap-2">
                             {producto.imagen && (
                               <img
-                                src={producto.imagen}
+                                src={obtenerImagenProducto(producto)}
                                 alt={producto.nombre}
                                 style={{
                                   width: "40px",
                                   height: "40px",
-                                  objectFit: "cover",
+                                  objectFit: "contain", backgroundColor: "#fff",
                                   borderRadius: "6px",
                                 }}
                               />

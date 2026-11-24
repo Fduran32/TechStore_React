@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import clienteAxios from "../services/axiosConfig";
 import { guardarCompra } from "../utils/localStorage";
+import { obtenerImagenProducto } from "../utils/imagenesProductos";
 
 function CarritoPage({
   carrito,
@@ -12,6 +13,7 @@ function CarritoPage({
 }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
   const [procesando, setProcesando] = useState(false);
+  const [errorCompra, setErrorCompra] = useState(null);
   const navigate = useNavigate();
 
   const total = carrito.reduce(
@@ -23,21 +25,25 @@ function CarritoPage({
   async function manejarPago() {
     setProcesando(true);
 
+    setErrorCompra(null);
+
     try {
-      console.log(`[INFO][COMPRA] Rebajando stock en MySQL para ${carrito.length} productos...`);
-
-      for (const item of carrito) {
-        const nuevoStock = Math.max(0, (item.stock || 0) - item.cantidad);
-        console.log(`[INFO][STOCK] Rebajando "${item.nombre}": Stock actual ${item.stock} ➔ Nuevo stock: ${nuevoStock}`);
-
-        // Llamada al backend Spring Boot
-        await clienteAxios.patch(`/api/productos/${item.id}/stock`, {
-          stock: nuevoStock,
-        });
-      }
+      console.log(`[INFO][COMPRA] Registrando compra de ${carrito.length} productos (POST /api/compras)...`);
+      await clienteAxios.post("/api/compras", {
+        items: carrito.map((item) => ({ productoId: item.id, cantidad: item.cantidad })),
+      });
       console.log("[INFO][COMPRA] Stock rebajado exitosamente en la base de datos.");
     } catch (error) {
-      console.warn("[WARN][STOCK] No se pudo rebajar stock de algún producto:", error);
+      console.error("[ERROR][COMPRA] La compra no se concretó:", error);
+      const estado = error.response?.status;
+      setErrorCompra(
+        error.response?.data?.mensaje ||
+          (estado === 401 || estado === 403
+            ? "Tu sesión no es válida o expiró. Inicia sesión nuevamente para comprar."
+            : "No se pudo confirmar la compra. Intenta nuevamente más tarde.")
+      );
+      setProcesando(false);
+      return;
     }
 
     const usuario = localStorage.getItem("usuario") || "cliente";
@@ -139,12 +145,13 @@ function CarritoPage({
                   <div className="d-flex align-items-center gap-3">
                     {producto.imagen && (
                       <img
-                        src={producto.imagen}
+                        src={obtenerImagenProducto(producto)}
                         alt={producto.nombre}
                         style={{
                           width: "50px",
                           height: "50px",
-                          objectFit: "cover",
+                          objectFit: "contain",
+                          backgroundColor: "#fff",
                           borderRadius: "8px",
                         }}
                       />
@@ -188,6 +195,12 @@ function CarritoPage({
           </tbody>
         </table>
       </div>
+
+      {errorCompra && (
+        <div className="alert alert-danger" role="alert">
+          {errorCompra}
+        </div>
+      )}
 
       {/* Barra de Total y Botón de Pago */}
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 p-3 bg-dark border border-secondary rounded">

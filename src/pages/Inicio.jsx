@@ -3,27 +3,13 @@ import Banner from "../components/Banner";
 import PorQueElegirnos from "../components/PorQueElegirnos";
 import ListaProductos from "../components/ListaProductos";
 import clienteAxios from "../services/axiosConfig";
+import { obtenerImagenProducto } from "../utils/imagenesProductos";
 
 function Inicio({ agregarAlCarrito }) {
-  const base = import.meta.env.BASE_URL;
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
 
   const [destacados, setDestacados] = useState([]);
   const [cargando, setCargando] = useState(true);
-
-  // Mapeo automático de imágenes locales según la categoría
-  const mapaImagenes = {
-    mouse: `${base}img/mouse.jpg`,
-    teclado: `${base}img/teclado.jpg`,
-    "audífonos": `${base}img/audifonos.jpg`,
-    audifonos: `${base}img/audifonos.jpg`,
-    monitor: `${base}img/monitor.webp`,
-    mousepad: `${base}img/mousepad.webp`,
-    "cámara web": `${base}img/cyber.jpg`,
-    camara: `${base}img/cyber.jpg`,
-    "micrófono": `${base}img/cyber2.jpg`,
-    microfono: `${base}img/cyber2.jpg`,
-  };
 
   useEffect(() => {
     async function cargarDestacados() {
@@ -34,11 +20,9 @@ function Inicio({ agregarAlCarrito }) {
 
         // Asignamos imágenes y seleccionamos los primeros 3 productos de la base de datos
         const productosConImagen = res.data.slice(0, 3).map((p) => {
-          const catNorm = (p.categoria || "").toLowerCase().trim();
-          const img = p.imagen || mapaImagenes[catNorm] || `${base}img/teclado.jpg`;
           return {
             ...p,
-            imagen: img,
+            imagen: obtenerImagenProducto(p),
           };
         });
 
@@ -51,7 +35,7 @@ function Inicio({ agregarAlCarrito }) {
     }
 
     cargarDestacados();
-  }, [base]);
+  }, []);
 
   return (
     <>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Banner from "../components/Banner";
 import ListaProductos from "../components/ListaProductos";
 import clienteAxios from "../services/axiosConfig";
+import { obtenerImagenProducto } from "../utils/imagenesProductos";
 
 function Productos({ agregarAlCarrito }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
@@ -11,20 +12,6 @@ function Productos({ agregarAlCarrito }) {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
-  // Mapeo automático de imágenes locales según la categoría de la BD
-  const mapaImagenes = {
-    mouse: `${base}img/mouse.jpg`,
-    teclado: `${base}img/teclado.jpg`,
-    "audífonos": `${base}img/audifonos.jpg`,
-    audifonos: `${base}img/audifonos.jpg`,
-    monitor: `${base}img/monitor.webp`,
-    mousepad: `${base}img/mousepad.webp`,
-    "cámara web": `${base}img/cyber.jpg`,
-    camara: `${base}img/cyber.jpg`,
-    "micrófono": `${base}img/cyber2.jpg`,
-    microfono: `${base}img/cyber2.jpg`,
-  };
-
   useEffect(() => {
     async function cargarProductos() {
       try {
@@ -33,13 +20,11 @@ function Productos({ agregarAlCarrito }) {
 
         const respuesta = await clienteAxios.get("/api/productos");
         
-        // Asignamos imagen por categoría a cada producto traído de MySQL
+        // Asignamos la imagen según el nombre a cada producto traído de MySQL
         const productosConImagen = respuesta.data.map((p) => {
-          const categoriaNorm = (p.categoria || "").toLowerCase().trim();
-          const imagenAsignada = p.imagen || mapaImagenes[categoriaNorm] || `${base}img/teclado.jpg`;
           return {
             ...p,
-            imagen: imagenAsignada,
+            imagen: obtenerImagenProducto(p),
           };
         });
 
@@ -55,7 +40,7 @@ function Productos({ agregarAlCarrito }) {
     }
 
     cargarProductos();
-  }, [base]);
+  }, []);
 
   return (
     <>

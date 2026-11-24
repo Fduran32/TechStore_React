@@ -8,7 +8,7 @@ function Producto({ producto, mostrarDetalle = true, agregarAlCarrito }) {
           src={producto.imagen}
           className="card-img-top product-img"
           alt={producto.nombre}
-          style={{ height: "220px", objectFit: "cover" }}
+          style={{ height: "220px", objectFit: "contain", backgroundColor: "#fff", padding: "12px" }}
         />
 
         <div className="card-body d-flex flex-column justify-content-between text-center">

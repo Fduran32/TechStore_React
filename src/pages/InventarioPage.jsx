@@ -4,10 +4,13 @@ import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
+import { obtenerImagenProducto } from "../utils/imagenesProductos";
 
 function InventarioPage({ rol }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
-  const base = import.meta.env.BASE_URL;
+
+  // Solo el ADMINISTRADOR puede crear y eliminar productos, y modificar precios y stock
+  const esAdmin = rol === "ADMINISTRADOR";
 
   // Estados de productos y carga
   const [productos, setProductos] = useState([]);
@@ -43,20 +46,6 @@ function InventarioPage({ rol }) {
   const [nuevoStock, setNuevoStock] = useState("");
   const [guardando, setGuardando] = useState(false);
 
-  // Mapeo automático de imágenes locales según la categoría
-  const mapaImagenes = {
-    mouse: `${base}img/mouse.jpg`,
-    teclado: `${base}img/teclado.jpg`,
-    "audífonos": `${base}img/audifonos.jpg`,
-    audifonos: `${base}img/audifonos.jpg`,
-    monitor: `${base}img/monitor.webp`,
-    mousepad: `${base}img/mousepad.webp`,
-    "cámara web": `${base}img/cyber.jpg`,
-    camara: `${base}img/cyber.jpg`,
-    "micrófono": `${base}img/cyber2.jpg`,
-    microfono: `${base}img/cyber2.jpg`,
-  };
-
   const categoriasDisponibles = [
     "Mouse",
     "Teclado",
@@ -80,9 +69,7 @@ function InventarioPage({ rol }) {
       const res = await clienteAxios.get("/api/productos");
 
       const lista = res.data.map((p) => {
-        const catNorm = (p.categoria || "").toLowerCase().trim();
-        const img = p.imagen || mapaImagenes[catNorm] || `${base}img/teclado.jpg`;
-        return { ...p, imagen: img };
+        return { ...p, imagen: obtenerImagenProducto(p) };
       });
 
       setProductos(lista);
@@ -103,6 +90,7 @@ function InventarioPage({ rol }) {
 
   // --- CREAR PRODUCTO (POST) ---
   function abrirModalCrear() {
+    if (!esAdmin) return;
     setFormCrear({
       nombre: "",
       descripcion: "",
@@ -115,6 +103,7 @@ function InventarioPage({ rol }) {
 
   async function handleCrearProducto(e) {
     e.preventDefault();
+    if (!esAdmin) return;
     if (!formCrear.nombre.trim() || !formCrear.precio || formCrear.stock === "") {
       mostrarAlerta("danger", "Por favor completa todos los campos obligatorios.");
       return;
@@ -138,7 +127,10 @@ function InventarioPage({ rol }) {
       await cargarProductos();
     } catch (err) {
       console.error("[ERROR][INVENTARIO] Error al crear producto:", err);
-      const msg = err.response?.data?.message || "Error al crear el producto en el servidor.";
+      const msg =
+        err.response?.status === 403
+          ? "Solo un Administrador puede crear productos."
+          : err.response?.data?.message || "Error al crear el producto en el servidor.";
       mostrarAlerta("danger", msg);
     } finally {
       setGuardando(false);
@@ -168,8 +160,9 @@ function InventarioPage({ rol }) {
         nombre: formEditar.nombre.trim(),
         descripcion: formEditar.descripcion.trim(),
         categoria: formEditar.categoria.trim(),
-        precio: parseInt(formEditar.precio, 10),
-        stock: parseInt(formEditar.stock, 10),
+        // Sin permiso de administrador se conservan el precio y stock actuales
+        precio: esAdmin ? parseInt(formEditar.precio, 10) : productoSeleccionado.precio,
+        stock: esAdmin ? parseInt(formEditar.stock, 10) : productoSeleccionado.stock,
       };
 
       console.log(`[INFO][INVENTARIO] Actualizando producto ID ${productoSeleccionado.id} (PUT /api/productos/${productoSeleccionado.id}):`, payload);
@@ -180,7 +173,10 @@ function InventarioPage({ rol }) {
       await cargarProductos();
     } catch (err) {
       console.error("[ERROR][INVENTARIO] Error al editar producto:", err);
-      const msg = err.response?.data?.message || "Error al actualizar el producto.";
+      const msg =
+        err.response?.status === 403
+          ? "No tienes permiso para modificar precio o stock, o los datos cambiaron. Recarga el inventario e intenta de nuevo."
+          : err.response?.data?.message || "Error al actualizar el producto.";
       mostrarAlerta("danger", msg);
     } finally {
       setGuardando(false);
@@ -189,6 +185,7 @@ function InventarioPage({ rol }) {
 
   // --- AJUSTAR STOCK (PATCH) ---
   function abrirModalStock(prod) {
+    if (!esAdmin) return;
     setProductoSeleccionado(prod);
     setNuevoStock(prod.stock !== undefined ? prod.stock : 0);
     setModalStock(true);
@@ -196,7 +193,7 @@ function InventarioPage({ rol }) {
 
   async function handleAjustarStock(e) {
     e.preventDefault();
-    if (!productoSeleccionado) return;
+    if (!productoSeleccionado || !esAdmin) return;
 
     try {
       setGuardando(true);
@@ -257,8 +254,6 @@ function InventarioPage({ rol }) {
     return coincideNombre && coincideCategoria;
   });
 
-  const esAdmin = rol === "ADMINISTRADOR";
-
   return (
     <div className="container py-3">
       {/* Cabecera de la Página */}
@@ -276,12 +271,14 @@ function InventarioPage({ rol }) {
           <span className={`badge px-3 py-2 ${esAdmin ? "bg-danger" : "bg-warning text-dark"}`}>
             Rol: {rol || "VENDEDOR"}
           </span>
-          <button
-            className="btn btn-outline-info fw-bold d-flex align-items-center gap-1 shadow-sm"
-            onClick={abrirModalCrear}
-          >
-            ➕ Nuevo Producto
-          </button>
+          {esAdmin && (
+            <button
+              className="btn btn-outline-info fw-bold d-flex align-items-center gap-1 shadow-sm"
+              onClick={abrirModalCrear}
+            >
+              ➕ Nuevo Producto
+            </button>
+          )}
         </div>
       </div>
 
@@ -369,7 +366,8 @@ function InventarioPage({ rol }) {
                         style={{
                           width: "48px",
                           height: "48px",
-                          objectFit: "cover",
+                          objectFit: "contain",
+                          backgroundColor: "#fff",
                           borderRadius: "8px",
                           border: "1px solid rgba(0, 243, 255, 0.3)",
                         }}
@@ -399,16 +397,17 @@ function InventarioPage({ rol }) {
                         <button
                           type="button"
                           className="btn btn-outline-info"
-                          title="Editar producto completo"
+                          title={esAdmin ? "Editar producto completo" : "Editar nombre, categoría y descripción"}
                           onClick={() => abrirModalEditar(prod)}
                         >
                           ✏️ Editar
                         </button>
                         <button
                           type="button"
-                          className="btn btn-outline-warning"
-                          title="Ajuste rápido de stock"
+                          className={`btn ${esAdmin ? "btn-outline-warning" : "btn-outline-secondary disabled"}`}
+                          title={esAdmin ? "Ajuste rápido de stock" : "Solo Administradores pueden modificar el stock"}
                           onClick={() => abrirModalStock(prod)}
+                          disabled={!esAdmin}
                         >
                           🔢 Stock
                         </button>
@@ -562,6 +561,7 @@ function InventarioPage({ rol }) {
                   type="number"
                   min="1"
                   required
+                  disabled={!esAdmin}
                   value={formEditar.precio}
                   onChange={(e) => setFormEditar({ ...formEditar, precio: e.target.value })}
                   className="bg-dark text-white border-secondary"
@@ -575,11 +575,18 @@ function InventarioPage({ rol }) {
                 type="number"
                 min="0"
                 required
+                disabled={!esAdmin}
                 value={formEditar.stock}
                 onChange={(e) => setFormEditar({ ...formEditar, stock: e.target.value })}
                 className="bg-dark text-white border-secondary"
               />
             </Form.Group>
+
+            {!esAdmin && (
+              <p className="small text-warning">
+                🔒 Solo un Administrador puede modificar el precio y el stock.
+              </p>
+            )}
 
             <Form.Group className="mb-2">
               <Form.Label className="small text-secondary">Descripción</Form.Label>
