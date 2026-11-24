@@ -5,6 +5,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
 import { obtenerImagenProducto } from "../utils/imagenesProductos";
+import { mensajeDeError } from "../services/sesion";
 
 function InventarioPage({ rol }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
@@ -81,6 +82,12 @@ function InventarioPage({ rol }) {
     }
   }
 
+  // Actualiza la tabla con el producto que devolvió el servidor (sin volver a descargar todo el catálogo)
+  function reemplazarProducto(actualizado) {
+    const conImagen = { ...actualizado, imagen: obtenerImagenProducto(actualizado) };
+    setProductos((lista) => lista.map((p) => (p.id === conImagen.id ? conImagen : p)));
+  }
+
   function mostrarAlerta(tipo, mensaje) {
     setAlerta({ tipo, mensaje });
     setTimeout(() => {
@@ -120,17 +127,17 @@ function InventarioPage({ rol }) {
       };
 
       console.log("[INFO][INVENTARIO] Creando nuevo producto (POST /api/productos):", payload);
-      await clienteAxios.post("/api/productos", payload);
+      const { data: creado } = await clienteAxios.post("/api/productos", payload);
 
       setModalCrear(false);
-      mostrarAlerta("success", `¡Producto "${payload.nombre}" creado exitosamente!`);
-      await cargarProductos();
+      mostrarAlerta("success", `¡Producto "${creado.nombre}" creado exitosamente!`);
+      setProductos((lista) => [...lista, { ...creado, imagen: obtenerImagenProducto(creado) }]);
     } catch (err) {
       console.error("[ERROR][INVENTARIO] Error al crear producto:", err);
       const msg =
         err.response?.status === 403
           ? "Solo un Administrador puede crear productos."
-          : err.response?.data?.message || "Error al crear el producto en el servidor.";
+          : mensajeDeError(err, "Error al crear el producto en el servidor.");
       mostrarAlerta("danger", msg);
     } finally {
       setGuardando(false);
@@ -166,17 +173,17 @@ function InventarioPage({ rol }) {
       };
 
       console.log(`[INFO][INVENTARIO] Actualizando producto ID ${productoSeleccionado.id} (PUT /api/productos/${productoSeleccionado.id}):`, payload);
-      await clienteAxios.put(`/api/productos/${productoSeleccionado.id}`, payload);
+      const { data: actualizado } = await clienteAxios.put(`/api/productos/${productoSeleccionado.id}`, payload);
 
       setModalEditar(false);
-      mostrarAlerta("success", `Producto "${payload.nombre}" actualizado correctamente.`);
-      await cargarProductos();
+      mostrarAlerta("success", `Producto "${actualizado.nombre}" actualizado correctamente.`);
+      reemplazarProducto(actualizado);
     } catch (err) {
       console.error("[ERROR][INVENTARIO] Error al editar producto:", err);
       const msg =
         err.response?.status === 403
           ? "No tienes permiso para modificar precio o stock, o los datos cambiaron. Recarga el inventario e intenta de nuevo."
-          : err.response?.data?.message || "Error al actualizar el producto.";
+          : mensajeDeError(err, "Error al actualizar el producto.");
       mostrarAlerta("danger", msg);
     } finally {
       setGuardando(false);
@@ -204,16 +211,16 @@ function InventarioPage({ rol }) {
       }
 
       console.log(`[INFO][INVENTARIO] Ajustando stock de ID ${productoSeleccionado.id} a ${stockNum} (PATCH /api/productos/${productoSeleccionado.id}/stock)`);
-      await clienteAxios.patch(`/api/productos/${productoSeleccionado.id}/stock`, {
+      const { data: actualizado } = await clienteAxios.patch(`/api/productos/${productoSeleccionado.id}/stock`, {
         stock: stockNum,
       });
 
       setModalStock(false);
-      mostrarAlerta("success", `Stock de "${productoSeleccionado.nombre}" actualizado a ${stockNum} unidades.`);
-      await cargarProductos();
+      mostrarAlerta("success", `Stock de "${actualizado.nombre}" actualizado a ${actualizado.stock} unidades.`);
+      reemplazarProducto(actualizado);
     } catch (err) {
       console.error("[ERROR][INVENTARIO] Error al ajustar stock:", err);
-      const msg = err.response?.data?.message || "Error al actualizar el stock.";
+      const msg = mensajeDeError(err, "Error al actualizar el stock.");
       mostrarAlerta("danger", msg);
     } finally {
       setGuardando(false);
@@ -234,12 +241,13 @@ function InventarioPage({ rol }) {
       console.log(`[INFO][INVENTARIO] Eliminando producto ID ${productoSeleccionado.id} (DELETE /api/productos/${productoSeleccionado.id})`);
       await clienteAxios.delete(`/api/productos/${productoSeleccionado.id}`);
 
+      const idEliminado = productoSeleccionado.id;
       setModalEliminar(false);
       mostrarAlerta("success", `Producto "${productoSeleccionado.nombre}" eliminado correctamente.`);
-      await cargarProductos();
+      setProductos((lista) => lista.filter((p) => p.id !== idEliminado));
     } catch (err) {
       console.error("[ERROR][INVENTARIO] Error al eliminar producto:", err);
-      const msg = err.response?.data?.message || "No se pudo eliminar el producto.";
+      const msg = mensajeDeError(err, "No se pudo eliminar el producto.");
       mostrarAlerta("danger", msg);
     } finally {
       setGuardando(false);
