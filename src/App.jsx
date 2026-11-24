@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import CompraExitosa from "./pages/CompraExitosa";
 import MisCompras from "./pages/MisCompras";
+import InventarioPage from "./pages/InventarioPage";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -23,9 +24,23 @@ function App() {
     return guardado;
   });
   const [mensajeAlerta, setMensajeAlerta] = useState(null);
-  // Usuario de sesión: se lee de localStorage solo al montar
-    // Usuario y Rol de sesion: se recuperan de localStorage al montar
-  const [usuario, setUsuario] = useState(() => localStorage.getItem("usuario") || null);
+  // Mapeo amigable para el usuario visible en la aplicacion
+  const mapaNombres = {
+    "11111111-1": "administrador",
+    "12345678-5": "vendedor",
+    "20456789-1": "cliente",
+    admin: "administrador",
+    administrador: "administrador",
+    vendedor: "vendedor",
+    cliente: "cliente",
+  };
+
+  // Usuario y Rol de sesion: se recuperan de localStorage al montar
+  const [usuario, setUsuario] = useState(() => {
+    const guardado = localStorage.getItem("usuario");
+    if (!guardado) return null;
+    return mapaNombres[guardado.toLowerCase()] || mapaNombres[guardado] || guardado;
+  });
   const [rol, setRol] = useState(() => localStorage.getItem("rol") || null);
 
   // Verificacion de token ante recarga (F5)
@@ -138,7 +153,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login onLogin={iniciarSesion} />} />
                    
-          <Route path="/" element={<Inicio/>}/>
+          <Route path="/" element={<Inicio agregarAlCarrito={agregarAlCarrito} />} />
           <Route
           path="/productos"
           element={
@@ -174,6 +189,14 @@ function App() {
             element={
               <ProtectedRoute usuario={usuario}>
                 <MisCompras />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventario"
+            element={
+              <ProtectedRoute usuario={usuario} rol={rol} rolesPermitidos={["ADMINISTRADOR", "VENDEDOR"]}>
+                <InventarioPage rol={rol} />
               </ProtectedRoute>
             }
           />

@@ -4,7 +4,7 @@ import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 import { Link, useNavigate } from "react-router-dom";
 
-function BarraNavegacion({ totalCarrito, usuario, onLogout }) {
+function BarraNavegacion({ totalCarrito, usuario, rol, onLogout }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
   const navigate = useNavigate();
 
@@ -124,6 +124,12 @@ function BarraNavegacion({ totalCarrito, usuario, onLogout }) {
                 )}
               </Nav.Link>
 
+              {(rol === "ADMINISTRADOR" || rol === "VENDEDOR") && (
+                <Nav.Link as={Link} to="/inventario" className="text-warning fw-semibold">
+                  📦 Inventario
+                </Nav.Link>
+              )}
+
               {usuario ? (
                 <div className="d-flex align-items-center gap-2 ms-lg-3">
                   <Link
@@ -132,9 +138,19 @@ function BarraNavegacion({ totalCarrito, usuario, onLogout }) {
                     title="Ver mis compras realizadas"
                   >
                     👤 {usuario}
-                    <span className="badge bg-info text-dark ms-1">
-                      Mis Compras
-                    </span>
+                    {rol && (
+                      <span
+                        className={`badge ms-1 ${
+                          rol === "ADMINISTRADOR"
+                            ? "bg-danger"
+                            : rol === "VENDEDOR"
+                            ? "bg-warning text-dark"
+                            : "bg-info text-dark"
+                        }`}
+                      >
+                        {rol}
+                      </span>
+                    )}
                   </Link>
                   <button
                     onClick={() => setMostrarConfirmacion(true)}

@@ -50,18 +50,29 @@ function Login({ onLogin }) {
       setCargando(true);
       setAlerta(null);
 
-      // Enviamos la petición al backend con el RUT mapeado y la contraseña
-      const data = await authService.login(rutFinal, password);
+      // Enviamos la petición al backend con el RUT mapeado, la contraseña y el nombre ingresado
+      const data = await authService.login(rutFinal, password, usuario.trim());
+
+      const mapaNombres = {
+        "11111111-1": "administrador",
+        "12345678-5": "vendedor",
+        "20456789-1": "cliente",
+        admin: "administrador",
+        administrador: "administrador",
+        vendedor: "vendedor",
+        cliente: "cliente",
+      };
+      const usuarioMostrar = mapaNombres[usuario.trim().toLowerCase()] || mapaNombres[rutFinal] || usuario.trim();
 
       setAlerta({
         tipo: "exito",
         titulo: "Autenticación Exitosa",
-        mensaje: `Bienvenido/a ${usuario.trim()}. Rol asignado: [${data.rol}]. Redirigiendo...`,
+        mensaje: `Bienvenido/a ${usuarioMostrar}. Rol asignado: [${data.rol}]. Redirigiendo...`,
       });
 
       // Notificamos a App.jsx para actualizar la sesión
       if (onLogin) {
-        onLogin(usuario.trim(), data.rol);
+        onLogin(usuarioMostrar, data.rol);
       }
 
       setTimeout(() => {
