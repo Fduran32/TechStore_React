@@ -1,4 +1,5 @@
 import clienteAxios from "./axiosConfig";
+import { limpiarSesion, nombreConocido, tokenVigente } from "./sesion";
 
 export const authService = {
   // Iniciar sesion contra el backend
@@ -13,19 +14,8 @@ export const authService = {
     const data = respuesta.data;
 
     if (data.token) {
-      // Mapeo amigable de cuentas
-      const mapaNombres = {
-        "11111111-1": "administrador",
-        "12345678-5": "vendedor",
-        "20456789-1": "cliente",
-        admin: "administrador",
-        administrador: "administrador",
-        vendedor: "vendedor",
-        cliente: "cliente",
-      };
-
-      const nombreNormalizado = nombreIngresado.trim().toLowerCase();
-      const usuarioFinal = mapaNombres[nombreNormalizado] || mapaNombres[data.rut] || nombreNormalizado || data.rut;
+      const nombre = nombreIngresado.trim().toLowerCase();
+      const usuarioFinal = nombreConocido(nombre) || nombreConocido(data.rut) || nombre || data.rut;
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("usuario", usuarioFinal);
@@ -37,12 +27,10 @@ export const authService = {
     return data;
   },
 
-  // Cerrar sesion
+  // Cerrar sesion: borra token, datos del usuario y carrito
   logout() {
     console.log("[INFO][AUTH] Cerrando sesion de usuario.");
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("rol");
+    limpiarSesion();
   },
 
   obtenerToken() {
@@ -57,14 +45,19 @@ export const authService = {
     return localStorage.getItem("rol");
   },
 
+  // Hay sesion solo si existe un token y no ha expirado
   estaAutenticado() {
-    return Boolean(localStorage.getItem("token"));
+    return tokenVigente(localStorage.getItem("token"));
   },
 
+  // Confirma el token con el servidor y sincroniza el rol con el que informa el backend
   async validarTokenServidor() {
     try {
       const respuesta = await clienteAxios.get("/api/v1/auth/validate");
       console.log("[INFO][AUTH] Token verificado correctamente en el servidor:", respuesta.data);
+      if (respuesta.data?.rol) {
+        localStorage.setItem("rol", respuesta.data.rol);
+      }
       return respuesta.data;
     } catch (error) {
       console.warn("[WARN][AUTH] Servidor indico token no valido:", error.response?.data);

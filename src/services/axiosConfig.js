@@ -1,40 +1,34 @@
 import axios from "axios";
+import { msRestantesToken, notificarSesionExpirada } from "./sesion";
+
+// URL del backend configurable por entorno (.env -> VITE_API_URL)
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 // Instancia centralizada de Axios apuntando al backend Spring Boot
 const clienteAxios = axios.create({
-  baseURL: "http://localhost:8081",
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
   timeout: 10000,
 });
 
-// Interceptor de Solicitud (Request): inyecta y valida el JWT antes de salir
+// Interceptor de Solicitud (Request): adjunta el JWT solo si sigue vigente
 clienteAxios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
     if (token) {
-      try {
-        // Decodificación manual del payload JWT (Base64)
-        const base64Url = token.split(".")[1];
-        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-        const payload = JSON.parse(window.atob(base64));
+      const restante = msRestantesToken(token);
 
-        const tiempoActual = Math.floor(Date.now() / 1000);
-
-        if (payload.exp && payload.exp < tiempoActual) {
-          const expiracionStr = new Date(payload.exp * 1000).toLocaleTimeString();
-          console.warn(`[WARN][JWT] Token expirado a las ${expiracionStr}. Peticion rechazada.`);
-        } else {
-          const minutosRestantes = payload.exp ? Math.round((payload.exp - tiempoActual) / 60) : 0;
-          console.log(`[INFO][JWT] Token valido (vigencia restante: ~${minutosRestantes} min). Header Bearer inyectado.`);
-        }
-      } catch (e) {
-        console.log(`[INFO][JWT] Token presente en localStorage. Adjuntando a la cabecera.`);
+      if (restante === 0) {
+        // Token vencido: no se envía y se cierra la sesión en toda la app
+        console.warn("[WARN][JWT] Token expirado. Se cierra la sesion y la peticion sale sin credenciales.");
+        notificarSesionExpirada();
+      } else {
+        console.log(`[INFO][JWT] Token valido (vigencia restante: ~${Math.round(restante / 60000)} min). Header Bearer inyectado.`);
+        config.headers.Authorization = `Bearer ${token}`;
       }
-
-      config.headers.Authorization = `Bearer ${token}`;
     } else {
       console.log(`[INFO][HTTP] Peticion publica sin credenciales hacia: ${config.method?.toUpperCase()} ${config.url}`);
     }
@@ -47,23 +41,19 @@ clienteAxios.interceptors.request.use(
   }
 );
 
-// Interceptor de Respuesta (Response): gestiona errores globales como 401
+// Interceptor de Respuesta (Response): gestiona errores globales
 clienteAxios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
+      const esLogin = error.config?.url?.includes("/auth/login");
 
-      if (status === 401) {
+      if (status === 401 && !esLogin) {
+        // El servidor rechazó el token: se cierra la sesión también en el estado de React
         console.error("[ERROR][AUTH 401] Acceso no autorizado o token vencido:", data);
-        
         if (localStorage.getItem("token")) {
-          console.warn("[WARN][AUTH] Limpiando credenciales invalidas de localStorage.");
-          localStorage.removeItem("token");
-          localStorage.removeItem("usuario");
-          localStorage.removeItem("rol");
+          notificarSesionExpirada();
         }
       } else if (status === 403) {
         console.error("[ERROR][AUTH 403] Permisos insuficientes para el recurso solicitado.");
@@ -71,7 +61,7 @@ clienteAxios.interceptors.response.use(
         console.error("[ERROR][SERVER 500] Error interno en el servicio backend.");
       }
     } else {
-      console.error("[ERROR][NETWORK] Error de comunicacion con el servidor en http://localhost:8080.");
+      console.error(`[ERROR][NETWORK] Error de comunicacion con el servidor en ${API_URL}.`);
     }
 
     return Promise.reject(error);

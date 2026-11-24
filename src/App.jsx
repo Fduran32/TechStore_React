@@ -14,53 +14,80 @@ import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { authService } from "./services/authService";
+import { EVENTO_SESION_EXPIRADA, limpiarSesion, msRestantesToken, nombreVisible } from "./services/sesion";
 function App() {
   // State: recuerda qué página se está mostrando
   
-  // Inicializador perezoso: lee el carrito guardado ("carrito") solo al montar
+  // Al montar: si el token guardado ya expiró, la sesión se descarta antes de pintar la app
+  const [sesionInicial] = useState(() => {
+    if (authService.estaAutenticado()) return true;
+    if (localStorage.getItem("token")) {
+      console.warn("[WARN][AUTH] Token guardado expirado. Se descarta la sesion.");
+    }
+    limpiarSesion();
+    return false;
+  });
+
+  // Inicializador perezoso: lee el carrito guardado del usuario (carrito_<rut>) solo al montar
   const [carrito, setCarrito] = useState(() => {
-    const guardado = obtenerCarrito();
+    const guardado = sesionInicial ? obtenerCarrito(localStorage.getItem("rut")) : [];
     console.log("🛒 [STATE INICIAL] Carrito recuperado desde localStorage:", guardado);
     return guardado;
   });
   const [mensajeAlerta, setMensajeAlerta] = useState(null);
-  // Mapeo amigable para el usuario visible en la aplicacion
-  const mapaNombres = {
-    "11111111-1": "administrador",
-    "12345678-5": "vendedor",
-    "20456789-1": "cliente",
-    admin: "administrador",
-    administrador: "administrador",
-    vendedor: "vendedor",
-    cliente: "cliente",
-  };
+  // Usuario y Rol de sesion: se recuperan de localStorage al montar (solo si el token sigue vigente)
+  const [usuario, setUsuario] = useState(() =>
+    sesionInicial ? nombreVisible(localStorage.getItem("usuario")) || null : null
+  );
+  const [rol, setRol] = useState(() => (sesionInicial ? localStorage.getItem("rol") : null));
 
-  // Usuario y Rol de sesion: se recuperan de localStorage al montar
-  const [usuario, setUsuario] = useState(() => {
-    const guardado = localStorage.getItem("usuario");
-    if (!guardado) return null;
-    return mapaNombres[guardado.toLowerCase()] || mapaNombres[guardado] || guardado;
-  });
-  const [rol, setRol] = useState(() => localStorage.getItem("rol") || null);
-
-  // Verificacion de token ante recarga (F5)
+  // Verificacion de token ante recarga (F5): el servidor confirma la sesión y el rol real
   useEffect(() => {
     if (authService.estaAutenticado()) {
       authService.validarTokenServidor().then((res) => {
         if (!res) {
-          console.warn("[WARN][AUTH] Sesion vencida detectada en F5. Limpiando...");
+          console.warn("[WARN][AUTH] Sesion rechazada por el servidor en F5. Limpiando...");
           cerrarSesion();
         } else {
           console.log("[INFO][AUTH] Sesion activa confirmada por el servidor para:", res.rut);
+          setRol(res.rol);
         }
       });
     }
   }, []);
 
+  // Si Axios detecta un token vencido o un 401, se limpia también el estado de React
+  useEffect(() => {
+    function alExpirar() {
+      setUsuario(null);
+      setRol(null);
+      setCarrito([]);
+      setMensajeAlerta("⏰ Tu sesión expiró. Inicia sesión nuevamente.");
+    }
+    window.addEventListener(EVENTO_SESION_EXPIRADA, alExpirar);
+    return () => window.removeEventListener(EVENTO_SESION_EXPIRADA, alExpirar);
+  }, []);
+
+  // Cierre automático cuando vence el token, aunque el usuario no haga ninguna petición
+  useEffect(() => {
+    if (!usuario) return;
+    const restante = msRestantesToken(authService.obtenerToken());
+    // setTimeout admite como máximo ~24,8 días
+    const espera = Math.min(restante, 2147483647);
+    const timer = setTimeout(() => {
+      console.warn("[WARN][AUTH] El token vencio. Cerrando sesion automaticamente.");
+      authService.logout();
+      window.dispatchEvent(new CustomEvent(EVENTO_SESION_EXPIRADA));
+    }, espera);
+    return () => clearTimeout(timer);
+  }, [usuario]);
+
   function iniciarSesion(rut, rolUsuario) {
     console.log("[INFO][STATE] Sesion iniciada para:", rut, "Rol:", rolUsuario);
     setUsuario(rut);
     setRol(rolUsuario);
+    // Recupera el carrito que el usuario dejó en su sesión anterior
+    setCarrito(obtenerCarrito(localStorage.getItem("rut")));
   }
 
   function cerrarSesion() {
@@ -68,6 +95,7 @@ function App() {
     authService.logout();
     setUsuario(null);
     setRol(null);
+    setCarrito([]);
   }
   function agregarAlCarrito(producto) {
     // 1. Verificamos si hay usuario conectado
@@ -133,12 +161,15 @@ function App() {
 
   const totalUnidades = carrito.reduce((acc, p) => acc + p.cantidad, 0);
 
+  // Solo se guarda con sesión activa: al cerrar sesión el carrito queda oculto pero conservado
   useEffect(() => {
-    guardarCarrito(carrito);
+    if (usuario) {
+      guardarCarrito(carrito, localStorage.getItem("rut"));
+    }
     console.log("💾 [STATE CARRITO ACTUALIZADO]:", carrito);
     const totalPagar = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
     console.log(`📊 [RESUMEN CARRITO]: ${totalUnidades} unidades | Total a pagar: $${totalPagar.toLocaleString("es-CL")}`);
-  }, [carrito, totalUnidades]);
+  }, [carrito, totalUnidades, usuario]);
 
   useEffect(() => {
     console.log("👤 [STATE USUARIO ACTUAL]:", usuario || "(Ninguna sesión activa)");

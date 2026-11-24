@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
+import { mensajeDeError, nombreConocido } from "../services/sesion";
 
 function Login({ onLogin }) {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
@@ -53,16 +54,7 @@ function Login({ onLogin }) {
       // Enviamos la petición al backend con el RUT mapeado, la contraseña y el nombre ingresado
       const data = await authService.login(rutFinal, password, usuario.trim());
 
-      const mapaNombres = {
-        "11111111-1": "administrador",
-        "12345678-5": "vendedor",
-        "20456789-1": "cliente",
-        admin: "administrador",
-        administrador: "administrador",
-        vendedor: "vendedor",
-        cliente: "cliente",
-      };
-      const usuarioMostrar = mapaNombres[usuario.trim().toLowerCase()] || mapaNombres[rutFinal] || usuario.trim();
+      const usuarioMostrar = nombreConocido(usuario.trim()) || nombreConocido(rutFinal) || usuario.trim();
 
       setAlerta({
         tipo: "exito",
@@ -81,7 +73,9 @@ function Login({ onLogin }) {
 
     } catch (error) {
       console.error("[ERROR][LOGIN] Fallo de inicio de sesión:", error);
-      const mensajeServidor = error.response?.data?.mensaje || "Usuario o contraseña incorrectos. Intenta nuevamente.";
+      const mensajeServidor = error.response
+        ? mensajeDeError(error, "Usuario o contraseña incorrectos. Intenta nuevamente.")
+        : "No se pudo conectar con el servidor. Verifica que el backend esté activo.";
       setAlerta({
         tipo: "error",
         titulo: "Acceso Denegado",

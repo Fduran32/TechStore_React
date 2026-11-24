@@ -1,25 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { obtenerCompras } from "../utils/localStorage";
+import { nombreVisible } from "../services/sesion";
 import { obtenerImagenProducto } from "../utils/imagenesProductos";
 
 function MisCompras() {
   const fuenteOrbitron = { fontFamily: "'Orbitron', sans-serif" };
   const [compras, setCompras] = useState([]);
 
-  // Mapeo amigable para asegurar que siempre diga cliente, vendedor, administrador o el nombre del usuario
-  const mapaNombres = {
-    "11111111-1": "administrador",
-    "12345678-5": "vendedor",
-    "20456789-1": "cliente",
-    admin: "administrador",
-    administrador: "administrador",
-    vendedor: "vendedor",
-    cliente: "cliente",
-  };
-
   const usuarioRaw = localStorage.getItem("usuario") || sessionStorage.getItem("usuario") || "";
-  const usuario = mapaNombres[usuarioRaw.toLowerCase()] || mapaNombres[usuarioRaw] || usuarioRaw || "cliente";
+  const usuario = nombreVisible(usuarioRaw) || "cliente";
 
   useEffect(() => {
     // Si existen compras bajo el nombre amigable o bajo el RUT, las recupera

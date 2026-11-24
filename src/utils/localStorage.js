@@ -1,15 +1,21 @@
-const CLAVE_CARRITO = "carrito";
+// El carrito se guarda por usuario (carrito_<rut>): sobrevive al cierre de sesión o a la
+// expiración del token, y no se mezcla si otra persona inicia sesión en el mismo navegador.
+function claveCarrito(rut) {
+  return `carrito_${rut}`;
+}
 
-export function obtenerCarrito() {
+export function obtenerCarrito(rut) {
+  if (!rut) return [];
   try {
-    return JSON.parse(localStorage.getItem(CLAVE_CARRITO)) || [];
+    return JSON.parse(localStorage.getItem(claveCarrito(rut))) || [];
   } catch {
     return [];
   }
 }
 
-export function guardarCarrito(carrito) {
-  localStorage.setItem(CLAVE_CARRITO, JSON.stringify(carrito));
+export function guardarCarrito(carrito, rut) {
+  if (!rut) return;
+  localStorage.setItem(claveCarrito(rut), JSON.stringify(carrito));
 }
 
 // Historial de compras asociadas al usuario conectado
