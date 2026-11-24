@@ -10,6 +10,7 @@ describe("Componente Producto", () => {
     precio: 45000,
     descripcion: "Switches mecánicos táctiles",
     imagen: "/img/teclado.jpg",
+    stock: 5,
   };
 
   it("muestra el producto y su precio", () => {
@@ -44,5 +45,17 @@ describe("Componente Producto", () => {
     );
 
     expect(agregarAlCarrito).toHaveBeenCalledWith(productoEjemplo);
+  });
+
+  it("muestra Agotado y deshabilita el botón cuando no hay stock", () => {
+    render(
+      <Producto
+        producto={{ ...productoEjemplo, stock: 0 }}
+        mostrarDetalle={true}
+        agregarAlCarrito={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: /Agotado/i })).toBeDisabled();
   });
 });

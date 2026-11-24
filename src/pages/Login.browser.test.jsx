@@ -1,8 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import Login from "./Login";
+import clienteAxios from "../services/axiosConfig";
+import { crearToken } from "../test/tokens";
+
+// El backend se simula: la prueba revisa el comportamiento del navegador, no la API
+vi.mock("../services/axiosConfig", () => ({ default: { post: vi.fn(), get: vi.fn() } }));
 
 function renderLogin() {
   return render(
@@ -16,7 +21,8 @@ function renderLogin() {
 }
 
 beforeEach(() => {
-  sessionStorage.clear();
+  localStorage.clear();
+  vi.clearAllMocks();
 });
 
 describe("Pruebas de navegador del inicio de sesión (Chromium)", () => {
@@ -42,22 +48,29 @@ describe("Pruebas de navegador del inicio de sesión (Chromium)", () => {
   });
 
   it("PF-03: inicia sesión con credenciales válidas", async () => {
+    clienteAxios.post.mockResolvedValueOnce({
+      data: { token: crearToken(3600, "VENDEDOR", "12345678-5"), rut: "12345678-5", rol: "VENDEDOR" },
+    });
     const user = userEvent.setup();
     renderLogin();
 
-    await user.type(screen.getByLabelText(/usuario/i), "claudio");
-    await user.type(screen.getByLabelText(/contraseña/i), "1234");
+    await user.type(screen.getByLabelText(/usuario/i), "vendedor");
+    await user.type(screen.getByLabelText(/contraseña/i), "Vendedor123");
     await user.click(
       screen.getByRole("button", { name: /ingresar/i })
     );
 
-    expect(sessionStorage.getItem("usuario")).toBe("claudio");
+    expect(localStorage.getItem("usuario")).toBe("vendedor");
+    expect(localStorage.getItem("rol")).toBe("VENDEDOR");
     expect(
       await screen.findByRole("heading", { name: /página principal/i }, { timeout: 3000 })
     ).toBeInTheDocument();
   });
 
   it("PF-04: no crea una sesión con credenciales inválidas", async () => {
+    clienteAxios.post.mockRejectedValueOnce({
+      response: { status: 401, data: { mensaje: "Usuario no encontrado con RUT: usuario_incorrecto" } },
+    });
     const user = userEvent.setup();
     renderLogin();
 
@@ -73,7 +86,8 @@ describe("Pruebas de navegador del inicio de sesión (Chromium)", () => {
       screen.getByRole("button", { name: /ingresar/i })
     );
 
-    expect(sessionStorage.getItem("usuario")).toBeNull();
+    expect(await screen.findByText(/Usuario no encontrado/)).toBeInTheDocument();
+    expect(localStorage.getItem("token")).toBeNull();
     expect(
       screen.queryByRole("heading", { name: /página principal/i })
     ).not.toBeInTheDocument();
